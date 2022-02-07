@@ -4,13 +4,21 @@
 #include "Roguelike.generated.h"
 
 
-UCLASS()
-class URoom: public UObject
+USTRUCT()
+struct FRoom
 {
 	GENERATED_BODY()
-	
+
+	UPROPERTY()
 	FVector2D Coord;
-	bool operator==(const URoom& Other) const;
+
+public:
+	bool operator==(const FRoom& Other) const;
+
+	// virtual FVector2D GetOriginWorldSpace(FVector2D RoomCoords)
+	// {
+	// 	return FVector2D(RoomWidthUnits * RoomCoords.X, RoomHeightUnits * RoomCoords.Y) * UnitScale;
+	// }
 };
 
 UCLASS()
@@ -18,5 +26,5 @@ class UGrid : public UObject
 {
 	GENERATED_BODY()
 	
-	TArray<URoom> Rooms;
+	TArray<FRoom> Rooms;
 };
