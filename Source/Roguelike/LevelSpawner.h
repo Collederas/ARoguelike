@@ -19,9 +19,6 @@ public:
 	float UnitScale = 100;
 
 	UPROPERTY(BlueprintReadOnly, EditAnywhere)
-	int GridSizeUnits = 10; 
-	
-	UPROPERTY(BlueprintReadOnly, EditAnywhere)
 	int RoomHeightUnits = 16;
 
 	UPROPERTY(BlueprintReadOnly, EditAnywhere)

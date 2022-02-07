@@ -10,7 +10,6 @@
 ALevelSpawner::ALevelSpawner()
 {
 	PrimaryActorTick.bCanEverTick = false;
-
 }
 
 // Called when the game starts or when spawned
@@ -18,12 +17,20 @@ void ALevelSpawner::BeginPlay()
 {
 	Super::BeginPlay();
 
-	FGrid WorldGrid(GridSizeUnits, GridSizeUnits);
+	constexpr int MaxRoomNr = 20;
+	
+	if (RoomNr > MaxRoomNr)
+	{
+		// If linking room number to progression, maybe this could throw event for beating the game.
+		UE_LOG(LogTemp, Warning, TEXT("Cannot spawn more than %d rooms. Aborting"), MaxRoomNr);
+		return;
+	}
+
+	FGrid WorldGrid(RoomNr, FVector2D(RoomWidthUnits,RoomHeightUnits));
 	UImageProcessor* ImageProcessor = NewObject<UImageProcessor>();
 	
 	// First room is always going to be in the center of the grid
-	const int GridMidPoint = FMath::Floor(GridSizeUnits/2);
-	FVector2D CurrentRoomCoord = FVector2D(GridMidPoint, GridMidPoint);
+	FVector2D CurrentRoomCoord = WorldGrid.GetCentralRoomCoord();
 	WorldGrid.AddRoom(CurrentRoomCoord);
 	
 	// Now add the remaining rooms
@@ -71,35 +78,30 @@ void ALevelSpawner::BeginPlay()
 			if (PixelCoord.X == 0 && PixelIndex > 0)
 				PixelCoord.Y ++;  // This means that this coordinate starts at 0 (eg.: on a 16x16px image, the max Y is 15)
 
+			// TODO: Scale is not working... why?
 			FVector SpawnLocation = FVector(GetRoomOrigin(RoomCoord) + PixelCoord, 0) * UnitScale;
+			FTransform SpawnTransform(FRotator::ZeroRotator, SpawnLocation, FVector(UnitScale / 100));
+
+			bool bSpawnWall = false;
+
+			if (Image[PixelIndex] == FVector(0,0,0))
+			{
+				bSpawnWall = true;
+			}
 			
 			// Outer walls detection for room connection/sealing logic
-			if (PixelCoord.X == 0 && !AdjacentRoomsCardinalPoints.Contains(West))
+			if (
+				PixelCoord.X == 0 && !AdjacentRoomsCardinalPoints.Contains(West) ||
+				PixelCoord.X == RoomWidthUnits - 1 && !AdjacentRoomsCardinalPoints.Contains(East) ||
+				PixelCoord.Y == 0 && !AdjacentRoomsCardinalPoints.Contains(South) ||
+				PixelCoord.Y == RoomHeightUnits - 1 && !AdjacentRoomsCardinalPoints.Contains(North)
+				)
 			{
-				// West wall
-				GetWorld()->SpawnActor(WallActor, &SpawnLocation, NULL, FActorSpawnParameters());
+				bSpawnWall = true;
 			}
-	
-			if (PixelCoord.X == RoomWidthUnits - 1 && !AdjacentRoomsCardinalPoints.Contains(East))
-			{
-				// East wall
-				GetWorld()->SpawnActor(WallActor, &SpawnLocation, NULL, FActorSpawnParameters());
-			}
-	
-			if (PixelCoord.Y == 0 && !AdjacentRoomsCardinalPoints.Contains(South))
-			{
-				// South wall
-				GetWorld()->SpawnActor(WallActor, &SpawnLocation, NULL, FActorSpawnParameters());
-			}
-	
-			if (PixelCoord.Y == RoomHeightUnits - 1 && !AdjacentRoomsCardinalPoints.Contains(North))
-			{
-				// North wall
-				GetWorld()->SpawnActor(WallActor, &SpawnLocation, NULL, FActorSpawnParameters());
-			}
-			
-			
-			
+
+				if (bSpawnWall)
+					GetWorld()->SpawnActor(WallActor, &SpawnTransform, FActorSpawnParameters());
 		}
 		// 	// -- WIP Test Image data --
 		// 	int x = 2;
