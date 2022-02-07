@@ -30,7 +30,9 @@ public:
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, meta = (RelativeToGameContentDir))
 	TArray<FFilePath> RoomSourceImages;
 	
-
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<AActor> WallActor;
+	
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -43,9 +45,8 @@ protected:
 	
 	virtual FString GetRandomSourceImage();
 
-	// Gives the coordinate of the origin which by convention is in the top-left corner
-	// (to map to source image origin)
-	virtual FVector2D GetRoomOriginWorldSpace(FVector2D RoomCoords);
+	// 0-indexed
+	virtual FVector2D GetRoomOrigin(FVector2D RoomGridCoord);
 };
 
 

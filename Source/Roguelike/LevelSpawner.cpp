@@ -4,6 +4,7 @@
 #include "LevelSpawner.h"
 
 #include "ImageProcessor.h"
+#include "Roguelike.h"
 
 // Sets default values
 ALevelSpawner::ALevelSpawner()
@@ -17,78 +18,96 @@ void ALevelSpawner::BeginPlay()
 {
 	Super::BeginPlay();
 
+	FGrid WorldGrid(GridSizeUnits, GridSizeUnits);
+	UImageProcessor* ImageProcessor = NewObject<UImageProcessor>();
+	
 	// First room is always going to be in the center of the grid
-	const float GridMidPoint = FMath::Floor(GridSizeUnits/2);
+	const int GridMidPoint = FMath::Floor(GridSizeUnits/2);
 	FVector2D CurrentRoomCoord = FVector2D(GridMidPoint, GridMidPoint);
-	Rooms.Add(CurrentRoomCoord);
-
+	WorldGrid.AddRoom(CurrentRoomCoord);
+	
 	// Now add the remaining rooms
-	for (uint8 Idx = 0; Idx < RoomNr - 1; Idx++)
+	for (uint8 Idx = 1; Idx < RoomNr; Idx++)
 	{
-		CurrentRoomCoord = SelectAdjacentRoomCoord(CurrentRoomCoord);
-		Rooms.Add(CurrentRoomCoord);
+		bool ValidRoomFound = false;
+		FVector2D ChosenRoomCoord;
+		
+		while (!ValidRoomFound)
+		{
+			ChosenRoomCoord = SelectAdjacentRoomCoord(CurrentRoomCoord);
+			ValidRoomFound = !WorldGrid.IsRoom(ChosenRoomCoord);
+		}
+			CurrentRoomCoord = ChosenRoomCoord;
+			WorldGrid.AddRoom(ChosenRoomCoord);
 	}
 
-	for (int RoomIndex = 0; Rooms.Num() -1; RoomIndex++)
+	for (int RoomIndex = 0; RoomIndex < WorldGrid.RoomsCoordinates.Num(); RoomIndex++)
 	{
 		if (RoomIndex == 1)
 		{
-			// First room should be empty?		
+			// First room should be empty?	
 		}
-
+	
 		if (RoomIndex == Rooms.Num() - 1)
 		{
 			// Last room should contain the exit		
 		}
-
-		FVector2D RoomOriginWS = GetRoomOriginWorldSpace(Rooms[RoomIndex]);
 		
+		const FVector2D RoomCoord = WorldGrid.RoomsCoordinates[RoomIndex];
+		TArray<CardinalPoint> AdjacentRoomsCardinalPoints;
+		WorldGrid.GetAdjacentRoomCardinalPoints(AdjacentRoomsCardinalPoints, RoomCoord);
+	 	
 		const FString SourceImagePath = GetRandomSourceImage();
-		UImageProcessor* ImageProcessor = NewObject<UImageProcessor>();
 		TArray<FVector> Image;
 		int Width, Height;
-		
 		ImageProcessor->LoadImage(Image, Width, Height, SourceImagePath);
-
+	
 		FVector2D PixelCoord = FVector2D::ZeroVector;
-		for (int PixelIndex = 0; PixelIndex < Image.Num() - 1; PixelIndex++)
+		for (int PixelIndex = 0; PixelIndex < Image.Num(); PixelIndex++)
 		{
 			PixelCoord.X = PixelIndex % RoomWidthUnits;
-
+	
 			// Every time we wrap around, increase Pixel Y coord
 			if (PixelCoord.X == 0 && PixelIndex > 0)
 				PixelCoord.Y ++;  // This means that this coordinate starts at 0 (eg.: on a 16x16px image, the max Y is 15)
+
+			FVector SpawnLocation = FVector(GetRoomOrigin(RoomCoord) + PixelCoord, 0) * UnitScale;
 			
 			// Outer walls detection for room connection/sealing logic
-			if(PixelCoord.X == 0)
+			if (PixelCoord.X == 0 && !AdjacentRoomsCardinalPoints.Contains(West))
 			{
 				// West wall
+				GetWorld()->SpawnActor(WallActor, &SpawnLocation, NULL, FActorSpawnParameters());
 			}
-
-			if (PixelCoord.X == RoomWidthUnits - 1)
+	
+			if (PixelCoord.X == RoomWidthUnits - 1 && !AdjacentRoomsCardinalPoints.Contains(East))
 			{
 				// East wall
+				GetWorld()->SpawnActor(WallActor, &SpawnLocation, NULL, FActorSpawnParameters());
 			}
-
-			if (PixelCoord.Y == 0)
+	
+			if (PixelCoord.Y == 0 && !AdjacentRoomsCardinalPoints.Contains(South))
 			{
 				// South wall
+				GetWorld()->SpawnActor(WallActor, &SpawnLocation, NULL, FActorSpawnParameters());
 			}
-
-			if (PixelCoord.Y == RoomHeightUnits - 1)
+	
+			if (PixelCoord.Y == RoomHeightUnits - 1 && !AdjacentRoomsCardinalPoints.Contains(North))
 			{
 				// North wall
+				GetWorld()->SpawnActor(WallActor, &SpawnLocation, NULL, FActorSpawnParameters());
 			}
 			
 			
 			
 		}
-		// -- WIP Test Image data --
-		int x = 2;
-		int y = 0;
-		size_t index = y * Width + x;
-		UE_LOG(LogTemp, Warning, TEXT("RGB pixel @ (x=%d, y=%d): %s"), x, y, *Image[index].ToString());
-		// -------------------------
+		// 	// -- WIP Test Image data --
+		// 	int x = 2;
+		// 	int y = 0;
+		// 	size_t index = y * Width + x;
+		// 	// UE_LOG(LogTemp, Warning, TEXT("RGB pixel @ (x=%d, y=%d): %s"), x, y, *Image[index].ToString());
+		// 	// -------------------------
+		// }
 	}
 }
 
@@ -101,6 +120,7 @@ FVector2D ALevelSpawner::SelectAdjacentRoomCoord(const FVector2D RoomCoord)
 	AvailableChoices.Add(FVector2D(RoomCoord.X, RoomCoord.Y - 1));
 
 	const int RandomIndex = FMath::FRandRange(0, 3);
+	
 	return AvailableChoices[RandomIndex];
 }
 
@@ -110,9 +130,10 @@ FString ALevelSpawner::GetRandomSourceImage()
 	return RoomSourceImages[RandomIndex].FilePath;
 }
 
-FVector2D ALevelSpawner::GetRoomOriginWorldSpace(FVector2D RoomCoords)
+FVector2D ALevelSpawner::GetRoomOrigin(FVector2D RoomGridCoord)
 {
-	return FVector2D(RoomWidthUnits * RoomCoords.X, RoomHeightUnits * RoomCoords.Y + RoomHeightUnits) * UnitScale;
+	return FVector2D(RoomWidthUnits * RoomGridCoord.X, RoomHeightUnits * RoomGridCoord.Y);
 }
+
 
 
