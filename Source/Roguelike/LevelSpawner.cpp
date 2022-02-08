@@ -79,8 +79,8 @@ void ALevelSpawner::BeginPlay()
 				PixelCoord.Y ++;  // This means that this coordinate starts at 0 (eg.: on a 16x16px image, the max Y is 15)
 
 			// TODO: Scale is not working... why?
-			FVector SpawnLocation = FVector(GetRoomOrigin(RoomCoord) + PixelCoord, 0) * UnitScale;
-			FTransform SpawnTransform(FRotator::ZeroRotator, SpawnLocation, FVector(UnitScale / 100));
+			FVector SpawnLocation = FVector(GetRoomOrigin(RoomCoord) + PixelCoord, 0) * GridUnitSize;
+			FTransform SpawnTransform(FRotator::ZeroRotator, SpawnLocation, FVector(GridUnitSize / 100));
 
 			bool bSpawnWall = false;
 

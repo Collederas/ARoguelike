@@ -53,10 +53,13 @@ struct FGrid
 	// Check value at given coord. Either a room (true) or not (false)
 	bool IsRoom(const FVector2D Coord)
 	{
-		return static_cast<bool>(Cells[GridSizeX * Coord.Y + Coord.X]);
+	    int d = GridSizeX * Coord.Y + Coord.X;
+	    if (Cells.Num() < d)
+	        return false;
+		return static_cast<bool>(Cells[d]);
 	}
 	
-	// Populate Result with array of cardinal locations of adjacent rooms
+	// Populate Result with cardinal locations of adjacent rooms
 	void GetAdjacentRoomCardinalPoints(TArray<CardinalPoint>& Result, const FVector2D Coord)
 	{
 		if (!IsRoom(Coord))

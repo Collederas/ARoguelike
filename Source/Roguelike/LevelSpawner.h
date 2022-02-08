@@ -4,7 +4,7 @@
 #include "GameFramework/Actor.h"
 #include "LevelSpawner.generated.h"
 
-UCLASS()
+UCLASS(Config=Game)
 class ROGUELIKE_API ALevelSpawner : public AActor
 {
 	GENERATED_BODY()
@@ -15,8 +15,8 @@ public:
 	UPROPERTY(BlueprintReadOnly, EditAnywhere)
 	int RoomNr = 5;
 	
-	UPROPERTY(BlueprintReadOnly, EditAnywhere)
-	float UnitScale = 100;
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Config)
+	float GridUnitSize = 200;
 
 	UPROPERTY(BlueprintReadOnly, EditAnywhere)
 	int RoomHeightUnits = 16;
