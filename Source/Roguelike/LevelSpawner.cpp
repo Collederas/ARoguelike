@@ -1,18 +1,14 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-
 #include "LevelSpawner.h"
-
 #include "ImageProcessor.h"
-#include "Roguelike.h"
+#include "WorldGrid.h"
+#include "Kismet/GameplayStatics.h"
+#include "Navigation/GridNavigationData.h"
 
-// Sets default values
 ALevelSpawner::ALevelSpawner()
 {
 	PrimaryActorTick.bCanEverTick = false;
 }
 
-// Called when the game starts or when spawned
 void ALevelSpawner::BeginPlay()
 {
 	Super::BeginPlay();
@@ -26,12 +22,16 @@ void ALevelSpawner::BeginPlay()
 		return;
 	}
 
-	FGrid WorldGrid(RoomNr, FVector2D(RoomWidthUnits,RoomHeightUnits));
+	UE_LOG(LogTemp, Warning, TEXT("Nr of rooms: %d"), RoomNr);
+
+	Grid = (AGrid*)GetWorld()->SpawnActor(AGrid::StaticClass(), &FTransform::Identity, FActorSpawnParameters());
+	Grid->Init(FVector2D(RoomWidthUnits,RoomHeightUnits));
+	
 	UImageProcessor* ImageProcessor = NewObject<UImageProcessor>();
 	
 	// First room is always going to be in the center of the grid
-	FVector2D CurrentRoomCoord = WorldGrid.GetCentralRoomCoord();
-	WorldGrid.AddRoom(CurrentRoomCoord);
+	FVector2D CurrentRoomCoord = Grid->GetCentralRoomCoord();
+	Grid->AddRoom(CurrentRoomCoord);
 	
 	// Now add the remaining rooms
 	for (uint8 Idx = 1; Idx < RoomNr; Idx++)
@@ -42,13 +42,13 @@ void ALevelSpawner::BeginPlay()
 		while (!ValidRoomFound)
 		{
 			ChosenRoomCoord = SelectAdjacentRoomCoord(CurrentRoomCoord);
-			ValidRoomFound = !WorldGrid.IsRoom(ChosenRoomCoord);
+			ValidRoomFound = !Grid->IsRoom(ChosenRoomCoord);
 		}
 			CurrentRoomCoord = ChosenRoomCoord;
-			WorldGrid.AddRoom(ChosenRoomCoord);
+			Grid->AddRoom(ChosenRoomCoord);
 	}
 
-	for (int RoomIndex = 0; RoomIndex < WorldGrid.RoomsCoordinates.Num(); RoomIndex++)
+	for (int RoomIndex = 0; RoomIndex < Grid->RoomsCoordinates.Num(); RoomIndex++)
 	{
 		if (RoomIndex == 1)
 		{
@@ -60,9 +60,9 @@ void ALevelSpawner::BeginPlay()
 			// Last room should contain the exit		
 		}
 		
-		const FVector2D RoomCoord = WorldGrid.RoomsCoordinates[RoomIndex];
+		const FVector2D RoomCoord = Grid->RoomsCoordinates[RoomIndex];
 		TArray<CardinalPoint> AdjacentRoomsCardinalPoints;
-		WorldGrid.GetAdjacentRoomCardinalPoints(AdjacentRoomsCardinalPoints, RoomCoord);
+		Grid->GetAdjacentRoomCardinalPoints(AdjacentRoomsCardinalPoints, RoomCoord);
 	 	
 		const FString SourceImagePath = GetRandomSourceImage();
 		TArray<FVector> Image;
@@ -78,9 +78,11 @@ void ALevelSpawner::BeginPlay()
 			if (PixelCoord.X == 0 && PixelIndex > 0)
 				PixelCoord.Y ++;  // This means that this coordinate starts at 0 (eg.: on a 16x16px image, the max Y is 15)
 
-			// TODO: Scale is not working... why?
-			FVector SpawnLocation = FVector(GetRoomOrigin(RoomCoord) + PixelCoord, 0) * GridUnitSize;
-			FTransform SpawnTransform(FRotator::ZeroRotator, SpawnLocation, FVector(GridUnitSize / 100));
+			FVector2D CurrentWorldTile = FVector2D(RoomCoord.X * RoomWidthUnits, RoomCoord.Y * RoomWidthUnits) + PixelCoord;
+
+			// Adding an offset of GridTileSize/2 because Actor mesh has pivot in the middle
+			FVector SpawnLocation = FVector(CurrentWorldTile, 0) * Grid->GridTileSize + FVector(Grid->GridTileSize/2, Grid->GridTileSize/2, 0);
+			FTransform SpawnTransform(FRotator::ZeroRotator, SpawnLocation, FVector(Grid->GridTileSize / 100));
 
 			bool bSpawnWall = false;
 
@@ -101,7 +103,11 @@ void ALevelSpawner::BeginPlay()
 			}
 
 				if (bSpawnWall)
+				{
 					GetWorld()->SpawnActor(WallActor, &SpawnTransform, FActorSpawnParameters());
+					Grid->AddBlockedTile(CurrentWorldTile.IntPoint());
+				}
+					
 		}
 		// 	// -- WIP Test Image data --
 		// 	int x = 2;
@@ -110,6 +116,12 @@ void ALevelSpawner::BeginPlay()
 		// 	// UE_LOG(LogTemp, Warning, TEXT("RGB pixel @ (x=%d, y=%d): %s"), x, y, *Image[index].ToString());
 		// 	// -------------------------
 		// }
+
+		const AActor* NavData = UGameplayStatics::GetActorOfClass(GetWorld(), AGridNavigationData::StaticClass());
+		AGridNavigationData* GridNavData = (AGridNavigationData*)NavData;
+
+		if (GridNavData)
+			GridNavData->Init(Grid);
 	}
 }
 

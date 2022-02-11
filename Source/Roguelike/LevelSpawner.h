@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "WorldGrid.h"
 #include "GameFramework/Actor.h"
 #include "LevelSpawner.generated.h"
 
@@ -15,9 +16,6 @@ public:
 	UPROPERTY(BlueprintReadOnly, EditAnywhere)
 	int RoomNr = 5;
 	
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, Config)
-	float GridUnitSize = 200;
-
 	UPROPERTY(BlueprintReadOnly, EditAnywhere)
 	int RoomHeightUnits = 16;
 
@@ -31,6 +29,9 @@ public:
 	TSubclassOf<AActor> WallActor;
 	
 protected:
+	UPROPERTY(Transient)
+	TObjectPtr<AGrid> Grid; 
+	
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
