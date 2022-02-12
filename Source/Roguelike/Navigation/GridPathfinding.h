@@ -35,7 +35,6 @@ public:
     {
         if (!WorldGrid->IsGridCellWalkable(NodeA) || !WorldGrid->IsGridCellWalkable(NodeB))
             return false;
-    
         return true;
     }
 

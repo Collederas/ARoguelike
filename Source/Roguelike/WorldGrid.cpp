@@ -2,14 +2,13 @@
 
 FVector AGrid::GetWorldLocationForGridCell(const FVector2D& Pos) const
 {
-	return FVector(Pos.Y * GridTileSize, Pos.X * GridTileSize, 0);
+	return FVector(Pos.X * GridTileSize, Pos.Y * GridTileSize, 0);
 }
 
 bool AGrid::GetGridCellForWorldLocation(const FVector& WorldPos, FVector2D& GridPos) const
 {
-	UE_LOG(LogTemp, Log, TEXT("Asked for GridCoord from WorldLocation: %s"), *WorldPos.ToString());
-	GridPos.Y = WorldPos.Y / GridTileSize;
-	GridPos.X = WorldPos.X / GridTileSize;
+	GridPos.X = (WorldPos.X/ GridTileSize) - 0.5;
+	GridPos.Y = (WorldPos.Y/ GridTileSize) - 0.5;
 	return (GridPos.X >= 0 && GridPos.Y >= 0 && GridPos.X < GridSize.X && GridPos.Y < GridSize.Y);
 }
 

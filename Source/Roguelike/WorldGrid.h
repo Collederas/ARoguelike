@@ -62,6 +62,8 @@ public:
 	
 	bool IsValidGridCell(const FIntPoint& Location) const;
 	
+	UPROPERTY(EditDefaultsOnly)
+	TArray<FIntPoint> BlockedTiles;
 protected:
 
 	UPROPERTY(BlueprintReadOnly)
@@ -74,8 +76,6 @@ protected:
 	// 1 for each potential room position. Value is 0 if tile is empty, 1 if it contains a room.
 	TArray<int8> RoomTiles;
 
-	UPROPERTY(EditDefaultsOnly)
-	TArray<FIntPoint> BlockedTiles;
 
 private:
 	FIntPoint GridSize;

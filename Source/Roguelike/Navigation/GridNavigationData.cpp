@@ -2,6 +2,8 @@
 #include "AI/Navigation/NavigationTypes.h"
 #include "../WorldGrid.h"
 #include "Kismet/GameplayStatics.h"
+#include "VisualLogger/VisualLogger.h"
+
 
 void AGridNavigationData::Init(AGrid* GridActor)
 {
@@ -70,19 +72,18 @@ FPathFindingResult AGridNavigationData::FindPath(const FNavAgentProperties& Agen
 				return Result;
 			}
 
-			// Path.Insert(MyGridPos.IntPoint(), 0);
+			Path.Insert(MyGridPos.IntPoint(), 0);
 
 			for (auto& Point : Path)
 			{
-				// THIS IS WHERE IT GOES WRONG!
 				NavPath->GetPathPoints().Add(FNavPathPoint(GridNavData->WorldGridActor->GetWorldLocationForGridCellCentre(Point)));
 			}
 
-			UE_LOG(LogTemp, Warning, TEXT("WorldGridNav path (%d points):"), Path.Num());
-			for (int i = 0; i < Path.Num(); i++)
-			{
-				UE_LOG(LogTemp, Warning, TEXT("%s (%s)"), *Path[i].ToString(), *NavPath->GetPathPoints()[i].Location.ToString());
-			}
+			// UE_LOG(LogTemp, Warning, TEXT("WorldGridNav path (%d points):"), Path.Num());
+			// for (int i = 0; i < Path.Num(); i++)
+			// {
+			//	   UE_LOG(LogTemp, Warning, TEXT("%s (%s)"), *Path[i].ToString(), *NavPath->GetPathPoints()[i].Location.ToString());
+			// }
 			
 			NavPath->MarkReady();
 			Result.Result = ENavigationQueryResult::Success;
