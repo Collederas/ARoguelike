@@ -17,9 +17,31 @@ FVector AGrid::GetWorldLocationForGridCellCentre(const FIntPoint& pos) const
 	return GetWorldLocationForGridCell(pos) + (FVector(GridTileSize, GridTileSize, 0) * 0.5f);
 }
 
+FVector2D AGrid::GetRoomCoord(FVector WorldCoord)
+{
+	FVector2D GridCoord;
+	GetGridCellForWorldLocation(WorldCoord, GridCoord);
+
+	const int RoomX = FMath::Floor(GridCoord.IntPoint().X / RoomDimensions.X);
+	const int RoomY = FMath::Floor(GridCoord.IntPoint().Y / RoomDimensions.Y);
+	UE_LOG(LogTemp, Warning, TEXT("Finding Room for World Coord: %s. Result: %s"), *WorldCoord.ToString(), *FVector2D(RoomX, RoomY).ToString());
+	return FVector2D(RoomX, RoomY);
+}
+
 FVector2D AGrid::GetCentralRoomCoord() const
 {
 	return FVector2D(FMath::Floor((NumberOfRooms.X - 1)/2), FMath::Floor((NumberOfRooms.Y - 1)/2));
+}
+
+FVector2D AGrid::GetRandomPointInRoom(FVector2D RoomCoord)
+{
+	const FVector2D RoomOrigin = GetRoomOrigin(RoomCoord);
+	
+	const int RandomX = FMath::RandRange(RoomOrigin.X + 1, RoomOrigin.X + RoomDimensions.X - 1);
+	const int RandomY = FMath::RandRange(RoomOrigin.Y + 1, RoomOrigin.Y + RoomDimensions.Y - 1);
+	UE_LOG(LogTemp, Log, TEXT("RoomOrigin for %s found at: %s. Random Location found at %s"), *RoomCoord.ToString(), *RoomOrigin.ToString(), *FVector2D(RandomX, RandomY).ToString());
+	
+	return FVector2D(RandomX, RandomY);
 }
 
 bool AGrid::AddRoom(FVector2D RoomCoord)
@@ -93,4 +115,9 @@ void AGrid::AddBlockedTile(FIntPoint Location)
 bool AGrid::IsValidGridCell(const FIntPoint& Location) const
 {
 	return (Location.X >= 0 && Location.Y >= 0 && Location.X < GridSize.X && Location.Y < GridSize.Y);
+}
+
+FVector2D AGrid::GetRoomOrigin(FVector2D RoomGridCoord)
+{
+	return FVector2D(RoomDimensions.X * RoomGridCoord.X, RoomDimensions.Y * RoomGridCoord.Y);
 }

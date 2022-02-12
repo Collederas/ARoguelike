@@ -26,6 +26,49 @@ bool AGridNavigationData::ProjectPoint(const FVector& Point, FNavLocation& OutLo
 	return false;
 }
 
+bool AGridNavigationData::GetRandomReachablePointInRadius(const FVector& Origin, float Radius, FNavLocation& OutResult,
+    FSharedConstNavQueryFilter Filter, const UObject* Querier) const
+{
+    int RandomOffset = FMath::RandRange(-(int)Radius, (int)Radius);
+    if (RandomOffset == 0)
+            RandomOffset = 1;
+
+    const FVector DestinationWorldSpace = Origin + FVector(RandomOffset,RandomOffset, 0);
+
+    FVector2D DestinationGridCell;
+    WorldGridActor->GetGridCellForWorldLocation(DestinationWorldSpace, DestinationGridCell);
+
+	if (!WorldGridActor->IsGridCellWalkable(DestinationGridCell.IntPoint()))
+    {
+            OutResult = FNavLocation(Origin, INVALID_NAVNODEREF);
+            return false;
+    }
+    
+    	OutResult = FNavLocation(DestinationWorldSpace, INVALID_NAVNODEREF);
+    	return true;
+}
+
+bool AGridNavigationData::GetRandomReachablePointInRoom(const FVector& Origin, FVector2D RoomCoord,
+	FVector& OutLocation, const UObject* Querier)
+{
+	bool bFoundValidLocation = false;
+	while(!bFoundValidLocation)
+	{
+		const FVector2D RandomPointInRoom = WorldGridActor->GetRandomPointInRoom(RoomCoord);
+	
+		const FVector DestinationWorldSpace = WorldGridActor->GetWorldLocationForGridCell(RandomPointInRoom);
+		FVector2D DestinationGridCell;
+		WorldGridActor->GetGridCellForWorldLocation(DestinationWorldSpace, DestinationGridCell);
+		
+		if (WorldGridActor->IsGridCellWalkable(DestinationGridCell.IntPoint()))
+		{
+			OutLocation = DestinationWorldSpace;
+			bFoundValidLocation = true;
+		}
+	}
+	return true;
+}
+
 FPathFindingResult AGridNavigationData::FindPath(const FNavAgentProperties& AgentProperties, const FPathFindingQuery& Query)
 {
 	const ANavigationData* Self = Query.NavData.Get();

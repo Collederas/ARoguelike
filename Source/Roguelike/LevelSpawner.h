@@ -42,9 +42,6 @@ protected:
 	virtual FVector2D SelectAdjacentRoomCoord(const FVector2D RoomCoord);
 	
 	virtual FString GetRandomSourceImage();
-
-	// 0-indexed
-	virtual FVector2D GetRoomOrigin(FVector2D RoomGridCoord);
 };
 
 

@@ -144,10 +144,3 @@ FString ALevelSpawner::GetRandomSourceImage()
 	return RoomSourceImages[RandomIndex].FilePath;
 }
 
-FVector2D ALevelSpawner::GetRoomOrigin(FVector2D RoomGridCoord)
-{
-	return FVector2D(RoomWidthUnits * RoomGridCoord.X, RoomHeightUnits * RoomGridCoord.Y);
-}
-
-
-

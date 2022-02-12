@@ -43,8 +43,11 @@ public:
 	FVector GetWorldLocationForGridCell(const FVector2D& Pos) const;
 	bool GetGridCellForWorldLocation(const FVector& WorldPos, FVector2D& GridPos) const;
 	FVector GetWorldLocationForGridCellCentre(const FIntPoint& pos) const;
+	virtual FVector2D GetRoomCoord(FVector WorldCoord); 
 
 	FVector2D GetCentralRoomCoord() const;
+	virtual FVector2D GetRandomPointInRoom(FVector2D RoomCoord); 
+	
 	
 	bool AddRoom(FVector2D RoomCoord);
 
@@ -61,22 +64,20 @@ public:
 	void AddBlockedTile(FIntPoint Location);
 	
 	bool IsValidGridCell(const FIntPoint& Location) const;
-	
+	FVector2D GetRoomOrigin(FVector2D RoomGridCoord);
+
 	UPROPERTY(EditDefaultsOnly)
 	TArray<FIntPoint> BlockedTiles;
-protected:
 
+protected:
 	UPROPERTY(BlueprintReadOnly)
 	FVector2D NumberOfRooms = FVector2D(10);
-
+	
 	UPROPERTY(BlueprintReadOnly)
 	FVector2D RoomDimensions;
-	// Using a bit of memory to make cardinal adjacency lookups a bit easier for me.
 	// It is an array of macro-tiles (size: (RoomDimensions.X, RoomDimensions.Y)),
 	// 1 for each potential room position. Value is 0 if tile is empty, 1 if it contains a room.
 	TArray<int8> RoomTiles;
-
-
 private:
 	FIntPoint GridSize;
 };
