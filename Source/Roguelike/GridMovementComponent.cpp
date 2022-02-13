@@ -41,16 +41,13 @@ void UGridMovementComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 	
-	if (WaitTime > 0)
-	{
-		WaitTime -= DeltaTime;
-		return;
-	}
-	
 	if (MoveTimeElapsed < MoveDuration && RequestedMove != FVector::ZeroVector)
 	{
-		GetOwner()->SetActorLocation(FMath::Lerp(GetOwner()->GetActorLocation(), RequestedMove, MoveTimeElapsed/MoveDuration));
-		MoveTimeElapsed += DeltaTime;
+		if (DeltaTime > 0)
+		{
+			GetOwner()->SetActorLocation(FMath::Lerp(GetOwner()->GetActorLocation(), RequestedMove, MoveTimeElapsed/MoveDuration));
+			MoveTimeElapsed += DeltaTime;	
+		}
 	}
 	else
 	{
