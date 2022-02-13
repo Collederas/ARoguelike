@@ -41,4 +41,5 @@ protected:
 
 private:
 	float MoveTimeElapsed = 0;
+	float WaitTime = 3;
 };
