@@ -3,7 +3,7 @@
 
 UGridMovementComponent::UGridMovementComponent()
 {
-	PrimaryComponentTick.bCanEverTick = false;
+	PrimaryComponentTick.bCanEverTick = true;
 }
 
 void UGridMovementComponent::AddInputVector(FVector WorldVector, bool bForce)
@@ -11,7 +11,7 @@ void UGridMovementComponent::AddInputVector(FVector WorldVector, bool bForce)
 	Super::AddInputVector(WorldVector, bForce);
 }
 
-void UGridMovementComponent::Move(EMoveDirection Direction)
+void UGridMovementComponent::RequestMove(EMoveDirection Direction)
 {
 	FVector DirectionVector;
 	switch (Direction)
@@ -32,10 +32,20 @@ void UGridMovementComponent::Move(EMoveDirection Direction)
 			DirectionVector = FVector::ZeroVector;
 	}
 
-	GetOwner()->SetActorLocation(GetOwner()->GetActorLocation() + DirectionVector * GridUnitSize);
+	RequestedMove = GetOwner()->GetActorLocation() + DirectionVector * GridUnitSize;
 }
 
-void UGridMovementComponent::BeginPlay()
+void UGridMovementComponent::TickComponent(float DeltaTime, ELevelTick TickType,
+	FActorComponentTickFunction* ThisTickFunction)
 {
-	Super::BeginPlay();
+	if (MoveTimeElapsed < MoveDuration && RequestedMove != FVector::ZeroVector)
+	{
+		GetOwner()->SetActorLocation(FMath::Lerp(GetOwner()->GetActorLocation(), RequestedMove, MoveTimeElapsed/MoveDuration));
+		MoveTimeElapsed += DeltaTime;
+	}
+	else
+	{
+		MoveTimeElapsed = 0;
+		RequestedMove = FVector::ZeroVector;
+	}
 }

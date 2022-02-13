@@ -48,12 +48,14 @@ bool AGridNavigationData::GetRandomReachablePointInRadius(const FVector& Origin,
     	return true;
 }
 
-bool AGridNavigationData::GetRandomReachablePointInRoom(const FVector& Origin, FVector2D RoomCoord,
-	FVector& OutLocation, const UObject* Querier)
+bool AGridNavigationData::GetRandomReachablePointInRoom(const FVector& Origin,
+	FVector& OutLocation, const APawn* Querier)
 {
 	bool bFoundValidLocation = false;
 	while(!bFoundValidLocation)
 	{
+		const FVector2D RoomCoord = WorldGridActor->GetRoomCoord(Querier->GetActorLocation());
+
 		const FVector2D RandomPointInRoom = WorldGridActor->GetRandomPointInRoom(RoomCoord);
 	
 		const FVector DestinationWorldSpace = WorldGridActor->GetWorldLocationForGridCell(RandomPointInRoom);
@@ -103,7 +105,7 @@ FPathFindingResult AGridNavigationData::FindPath(const FNavAgentProperties& Agen
 
 			TArray<FIntPoint> Path;
 
-			UE_LOG(LogTemp, Warning, TEXT("Finding path from start grid: %s to end grid: %s"), *MyGridPos.IntPoint().ToString(), *TargetGridPos.IntPoint().ToString());
+			// UE_LOG(LogTemp, Warning, TEXT("Finding path from start grid: %s to end grid: %s"), *MyGridPos.IntPoint().ToString(), *TargetGridPos.IntPoint().ToString());
 
 			const EGraphAStarResult AStarResult = GridNavData->Pathfinder->FindPath(MyGridPos.IntPoint(), TargetGridPos.IntPoint(), QueryFilter, Path);
 

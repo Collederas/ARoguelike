@@ -24,7 +24,6 @@ FVector2D AGrid::GetRoomCoord(FVector WorldCoord)
 
 	const int RoomX = FMath::Floor(GridCoord.IntPoint().X / RoomDimensions.X);
 	const int RoomY = FMath::Floor(GridCoord.IntPoint().Y / RoomDimensions.Y);
-	UE_LOG(LogTemp, Warning, TEXT("Finding Room for World Coord: %s. Result: %s"), *WorldCoord.ToString(), *FVector2D(RoomX, RoomY).ToString());
 	return FVector2D(RoomX, RoomY);
 }
 
@@ -39,8 +38,6 @@ FVector2D AGrid::GetRandomPointInRoom(FVector2D RoomCoord)
 	
 	const int RandomX = FMath::RandRange(RoomOrigin.X + 1, RoomOrigin.X + RoomDimensions.X - 1);
 	const int RandomY = FMath::RandRange(RoomOrigin.Y + 1, RoomOrigin.Y + RoomDimensions.Y - 1);
-	UE_LOG(LogTemp, Log, TEXT("RoomOrigin for %s found at: %s. Random Location found at %s"), *RoomCoord.ToString(), *RoomOrigin.ToString(), *FVector2D(RandomX, RandomY).ToString());
-	
 	return FVector2D(RandomX, RandomY);
 }
 

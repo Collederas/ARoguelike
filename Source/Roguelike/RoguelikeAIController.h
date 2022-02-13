@@ -1,5 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
 #pragma once
 
 #include "CoreMinimal.h"
@@ -9,25 +7,28 @@
 #include "Navigation/GridNavigationData.h"
 #include "RoguelikeAIController.generated.h"
 
-/**
- * 
- */
 UCLASS()
 class ROGUELIKE_API ARoguelikeAIController : public AAIController
 {
 	GENERATED_BODY()
 
+public:
 	virtual void BeginPlay() override;
 	
-	UFUNCTION(BlueprintCallable)
-	virtual void RandomReachablePointInCurrentRoom(FVector& RandomLocation);
+	UFUNCTION(BlueprintPure, meta = (WorldContext="WorldContextObject"))
+	static void RandomReachablePointInCurrentRoom(const UObject* WorldContextObject, APawn* QuerierPawn, FVector& RandomLocation, ANavigationData* NavData = nullptr);
+	
+	UFUNCTION(BlueprintImplementableEvent)
+	void OnMoveCompleted_Blueprint(FAIRequestID RequestID, EPathFollowingResult::Type Result);
 
-	// Gets room coordinates where actor is
-	UFUNCTION(BlueprintCallable)
-	virtual FVector2D GetRoom(AActor* Actor);
-
+	virtual void OnMoveCompleted(FAIRequestID RequestID, const FPathFollowingResult& Result) override;
+	
 protected:
 	UPROPERTY(BlueprintReadOnly)
 	AGridNavigationData* GridNavigationData;
-};
 
+	UFUNCTION(BlueprintCallable)
+	virtual EPathFollowingRequestResult::Type GridMoveTo(FVector Dest, TSubclassOf<UNavigationQueryFilter> FilterClass, int NumberOfMoves);
+	
+	virtual FPathFollowingRequestResult GridMoveTo(FVector Dest, FAIMoveRequest MoveRequest, int NumberOfMoves, FNavPathSharedPtr* OutPath = nullptr);
+};

@@ -19,7 +19,7 @@ public:
 	virtual bool ProjectPoint(const FVector& Point, FNavLocation& OutLocation, const FVector& Extent, FSharedConstNavQueryFilter Filter = NULL, const UObject* Querier = NULL) const override;
 	virtual bool GetRandomReachablePointInRadius(const FVector& Origin, float Radius, FNavLocation& OutResult, FSharedConstNavQueryFilter Filter, const UObject* Querier) const override;
 
-	virtual bool GetRandomReachablePointInRoom(const FVector& Origin, FVector2D RoomCoord, FVector& OutLocation, const UObject* Querier);
+	virtual bool GetRandomReachablePointInRoom(const FVector& Origin, FVector& OutLocation, const APawn* Querier);
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	AGrid*  WorldGridActor;

@@ -25,11 +25,20 @@ public:
 	virtual void AddInputVector(FVector WorldVector, bool bForce) override;
 	
 	UFUNCTION(BlueprintCallable, Category="Pawn|Components|GridMovementComponent")
-	virtual void Move(EMoveDirection Direction);
+	virtual void RequestMove(EMoveDirection Direction);
 
 protected:
-	virtual void BeginPlay() override;
+	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
+	UPROPERTY(EditAnywhere)
+	float MoveDuration = 1.f;
+	
+	UPROPERTY(BlueprintReadOnly)
+	FVector RequestedMove;
+	
 	UPROPERTY(Config)
 	int GridUnitSize = 200;
+
+private:
+	float MoveTimeElapsed = 0;
 };
