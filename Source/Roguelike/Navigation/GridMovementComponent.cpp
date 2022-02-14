@@ -32,8 +32,13 @@ FVector UGridMovementComponent::RequestMove(EMoveDirection Direction)
 	return RequestedMove;
 }
 
+void UGridMovementComponent::StopMovementImmediately()
+{
+	RequestedMove = FVector::ZeroVector;
+}
+
 void UGridMovementComponent::TickComponent(float DeltaTime, ELevelTick TickType,
-	FActorComponentTickFunction* ThisTickFunction)
+                                           FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 	

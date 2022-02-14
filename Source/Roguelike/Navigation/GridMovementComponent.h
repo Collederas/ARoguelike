@@ -29,6 +29,8 @@ public:
 	UFUNCTION(BlueprintCallable, Category="Pawn|Components|GridMovementComponent")
 	FVector RequestMove(EMoveDirection Direction);
 
+	virtual void StopMovementImmediately() override;
+
 protected:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
