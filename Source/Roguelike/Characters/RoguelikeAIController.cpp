@@ -4,9 +4,10 @@
 #include "Roguelike/Navigation/GridNavigationData.h"
 #include "Roguelike/Navigation/RoguelikePathFollowingComponent.h"
 
-ARoguelikeAIController::ARoguelikeAIController(const FObjectInitializer& Initializer) : Super(Initializer.SetDefaultSubobjectClass<URoguelikePathFollowingComponent>(TEXT("PathFollowingComponent")))
+ARoguelikeAIController::ARoguelikeAIController(const FObjectInitializer& Initializer) : Super(
+	Initializer.SetDefaultSubobjectClass<URoguelikePathFollowingComponent>(TEXT("PathFollowingComponent")))
 {
-	
+	GridActorOwner = FGridActor(GetOwner(), EGridActorType::Enemy);
 }
 
 void ARoguelikeAIController::BeginPlay()
@@ -114,19 +115,24 @@ FPathFollowingRequestResult ARoguelikeAIController::GridMoveTo(FVector Dest, FAI
 						SlicedPath->GetPathPoints().Add(PathPointsCopy[Idx]);
 					else
 					{
-						UE_LOG(LogTemp, Warning, TEXT("Requested more moves: (%d) than path points: (%d). Idx: %d"), NumberOfMoves,
-							   PathPointsCopy.Num(), Idx);
+						UE_LOG(LogTemp, Warning, TEXT("Requested more moves: (%d) than path points: (%d). Idx: %d"),
+						       NumberOfMoves,
+						       PathPointsCopy.Num(), Idx);
 						break;
 					}
 				}
 				const FAIRequestID RequestID = PathResult.IsValid()
-												   ? RequestMove(MoveRequest, SlicedPath)
-												   : FAIRequestID::InvalidRequest;
+					                               ? RequestMove(MoveRequest, SlicedPath)
+					                               : FAIRequestID::InvalidRequest;
 
 				if (RequestID.IsValid())
 				{
 					bAllowStrafe = MoveRequest.CanStrafe();
 					ResultData.MoveId = RequestID;
+					FVector2D DestinationTile;
+					GridNavigationData->WorldGridActor->GetGridCellForWorldLocation(SlicedPath->GetPathPoints().Last().Location, DestinationTile);
+					GridNavigationData->WorldGridActor->UpdateActorLocationMap(
+						DestinationTile, GridActorOwner);
 					ResultData.Code = EPathFollowingRequestResult::RequestSuccessful;
 
 					if (OutPath)

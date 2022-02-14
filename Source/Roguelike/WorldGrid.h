@@ -15,6 +15,34 @@ enum CardinalPoint
 	West
 };
 
+UENUM(BlueprintType)
+enum EGridActorType
+{
+	Enemy,
+	Wall,
+	Door,
+	Chest,
+	None
+};
+
+USTRUCT(BlueprintType)
+struct FGridActor
+{
+	GENERATED_BODY()
+	FGridActor(){ ActorType = None; }
+	FGridActor(EGridActorType InType): Actor(nullptr), ActorType(InType) {}   
+	FGridActor(AActor* InActor, EGridActorType InType): Actor(InActor), ActorType(InType) {}
+
+	UPROPERTY(BlueprintReadOnly)
+	TObjectPtr<const AActor> Actor;
+
+	UPROPERTY(BlueprintReadOnly)
+	TEnumAsByte<EGridActorType> ActorType;
+	
+	bool operator!=(const FGridActor& OtherGridActor) const;
+	bool operator==(const FGridActor& OtherGridActor) const;
+};
+
 /**
  * Represents a Grid as a single dimensional array. Indices start at 0 for both
  * X and Y.
@@ -70,6 +98,15 @@ public:
 	// Clears all instance data
 	virtual void Empty();
 
+	UFUNCTION(BlueprintCallable)
+	void UpdateActorLocationMap(const FVector2D Tile, const FGridActor GridActor);
+
+	UFUNCTION(BlueprintCallable)
+	bool CheckGridOccupied(FVector2D Tile, FGridActor& GridActor);
+
+	UFUNCTION(BlueprintCallable)
+	bool WorldPositionCheckGridOccupied(FVector WorldPosition, FGridActor& GridActor);
+
 	UPROPERTY(EditDefaultsOnly)
 	TArray<FIntPoint> BlockedTiles;
 
@@ -79,6 +116,10 @@ protected:
 	
 	UPROPERTY(BlueprintReadOnly)
 	FVector2D RoomDimensions;
+
+	UPROPERTY()
+	TMap<FVector2D, FGridActor> ActorLocationMap;
+	
 	// It is an array of macro-tiles (size: (RoomDimensions.X, RoomDimensions.Y)),
 	// 1 for each potential room position. Value is 0 if tile is empty, 1 if it contains a room.
 	TArray<int8> RoomTiles;

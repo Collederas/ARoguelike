@@ -124,6 +124,7 @@ void ALevelSpawner::SpawnNewLevel()
 				FVector CustomSpawnLoc = SpawnLocation + FVector(0,0,170);
 				APawn* const Enemy = (APawn*)GetWorld()->SpawnActor(ActorClassToSpawn, &CustomSpawnLoc, NULL, FActorSpawnParameters()); 
 				SpawnedEnemies.Add(Enemy);
+				Grid->UpdateActorLocationMap(CurrentWorldTile, FGridActor(Enemy, EGridActorType::Enemy));
 				Enemy->SpawnDefaultController();
 			}
 

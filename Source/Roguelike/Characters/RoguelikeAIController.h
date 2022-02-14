@@ -45,4 +45,7 @@ protected:
 private:
 	UPROPERTY()
 	URoguelikePathFollowingComponent* RLPathFollowingComponent;
+
+	UPROPERTY()
+	FGridActor GridActorOwner;
 };

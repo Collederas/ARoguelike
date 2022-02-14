@@ -1,5 +1,19 @@
 ﻿#include "WorldGrid.h"
 
+bool FGridActor::operator!=(const FGridActor& OtherGridActor) const
+{
+	if (OtherGridActor.Actor)
+		return OtherGridActor.Actor != Actor || OtherGridActor.ActorType != ActorType;
+	return OtherGridActor.ActorType != ActorType;
+}
+
+bool FGridActor::operator==(const FGridActor& OtherGridActor) const
+{
+	if (OtherGridActor.Actor)
+		return OtherGridActor.Actor == Actor && OtherGridActor.ActorType != ActorType;
+	return OtherGridActor.ActorType == ActorType;
+}
+
 FVector AGrid::GetWorldLocationForGridCell(const FVector2D& Pos) const
 {
 	return FVector(Pos.X * GridTileSize, Pos.Y * GridTileSize, 0);
@@ -107,6 +121,7 @@ bool AGrid::IsGridCellWalkable(const FIntPoint& Location) const
 void AGrid::AddBlockedTile(FIntPoint Location)
 {
 	BlockedTiles.Add(Location);
+	UpdateActorLocationMap(Location, FGridActor(Wall));
 }
 
 bool AGrid::IsValidGridCell(const FIntPoint& Location) const
@@ -125,3 +140,25 @@ void AGrid::Empty()
 	RoomsCoordinates.Empty();
 	BlockedTiles.Empty();
 }
+
+void AGrid::UpdateActorLocationMap(const FVector2D Tile, const FGridActor GridActor)
+{
+	ActorLocationMap.Add(Tile, GridActor);
+}
+
+bool AGrid::CheckGridOccupied(FVector2D Tile, FGridActor& GridActor)
+{
+	GridActor = ActorLocationMap.FindRef(Tile);
+	if (GridActor.Actor == nullptr && GridActor.ActorType == None)
+		return false;
+	return true;
+}	
+
+bool AGrid::WorldPositionCheckGridOccupied(FVector WorldPosition, FGridActor& GridActor)
+{
+	FVector2D TileCoord;
+	GetGridCellForWorldLocation(WorldPosition, TileCoord);
+	return CheckGridOccupied(TileCoord, GridActor);
+}
+
+
