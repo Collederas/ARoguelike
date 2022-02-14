@@ -6,12 +6,7 @@ UGridMovementComponent::UGridMovementComponent()
 	PrimaryComponentTick.bCanEverTick = true;
 }
 
-void UGridMovementComponent::AddInputVector(FVector WorldVector, bool bForce)
-{
-	Super::AddInputVector(WorldVector, bForce);
-}
-
-void UGridMovementComponent::RequestMove(EMoveDirection Direction)
+FVector UGridMovementComponent::RequestMove(EMoveDirection Direction)
 {
 	FVector DirectionVector;
 	switch (Direction)
@@ -34,6 +29,7 @@ void UGridMovementComponent::RequestMove(EMoveDirection Direction)
 
 	RequestedMove = GetOwner()->GetActorLocation() + DirectionVector * GridUnitSize;
 	MoveTimeElapsed = 0;
+	return RequestedMove;
 }
 
 void UGridMovementComponent::TickComponent(float DeltaTime, ELevelTick TickType,

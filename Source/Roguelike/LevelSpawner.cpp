@@ -9,10 +9,8 @@ ALevelSpawner::ALevelSpawner()
 	PrimaryActorTick.bCanEverTick = false;
 }
 
-void ALevelSpawner::BeginPlay()
+void ALevelSpawner::SpawnNewLevel()
 {
-	Super::BeginPlay();
-
 	constexpr int MaxRoomNr = 20;
 	
 	if (RoomNr > MaxRoomNr)
@@ -22,11 +20,20 @@ void ALevelSpawner::BeginPlay()
 		return;
 	}
 
-	UE_LOG(LogTemp, Warning, TEXT("Nr of rooms: %d"), RoomNr);
+	UE_LOG(LogTemp, Warning, TEXT("Spawning New Level with %d rooms"), RoomNr);
 
-	Grid = (AGrid*)GetWorld()->SpawnActor(AGrid::StaticClass(), &FTransform::Identity, FActorSpawnParameters());
-	Grid->Init(FVector2D(RoomWidthUnits,RoomHeightUnits));
+	for (auto SpawnedWall : SpawnedWalls)
+	{
+		SpawnedWall->Destroy();
+	}
+
+	SpawnedWalls.Empty();
 	
+	if (!Grid)
+		Grid = (AGrid*)GetWorld()->SpawnActor(AGrid::StaticClass(), &FTransform::Identity, FActorSpawnParameters());
+
+	Grid->Init(FVector2D(RoomWidthUnits,RoomHeightUnits));
+		
 	UImageProcessor* ImageProcessor = NewObject<UImageProcessor>();
 	
 	// First room is always going to be in the center of the grid
@@ -104,7 +111,7 @@ void ALevelSpawner::BeginPlay()
 
 				if (bSpawnWall)
 				{
-					GetWorld()->SpawnActor(WallActor, &SpawnTransform, FActorSpawnParameters());
+					SpawnedWalls.Add(GetWorld()->SpawnActor(WallActor, &SpawnTransform, FActorSpawnParameters()));
 					Grid->AddBlockedTile(CurrentWorldTile.IntPoint());
 				}
 					
@@ -116,13 +123,18 @@ void ALevelSpawner::BeginPlay()
 		// 	// UE_LOG(LogTemp, Warning, TEXT("RGB pixel @ (x=%d, y=%d): %s"), x, y, *Image[index].ToString());
 		// 	// -------------------------
 		// }
-
-		const AActor* NavData = UGameplayStatics::GetActorOfClass(GetWorld(), AGridNavigationData::StaticClass());
-		AGridNavigationData* GridNavData = (AGridNavigationData*)NavData;
-
-		if (GridNavData)
-			GridNavData->Init(Grid);
+		
+		if (GridNavigationData)
+			GridNavigationData->Init(Grid);
 	}
+}
+
+void ALevelSpawner::BeginPlay()
+{
+	Super::BeginPlay();
+	const AActor* NavData = UGameplayStatics::GetActorOfClass(GetWorld(), AGridNavigationData::StaticClass());
+	AGridNavigationData* GridNavData = (AGridNavigationData*)NavData;
+	GridNavigationData = GridNavData;
 }
 
 FVector2D ALevelSpawner::SelectAdjacentRoomCoord(const FVector2D RoomCoord)

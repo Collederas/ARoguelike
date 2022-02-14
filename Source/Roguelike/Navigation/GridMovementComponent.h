@@ -26,10 +26,8 @@ public:
 
 	FMoveComplete OnMoveComplete;
 
-	virtual void AddInputVector(FVector WorldVector, bool bForce) override;
-	
 	UFUNCTION(BlueprintCallable, Category="Pawn|Components|GridMovementComponent")
-	virtual void RequestMove(EMoveDirection Direction);
+	FVector RequestMove(EMoveDirection Direction);
 
 protected:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;

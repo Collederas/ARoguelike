@@ -28,6 +28,7 @@ public:
 	AGrid(): RoomDimensions(16), GridSize(FIntPoint(80)) {}
 	virtual void Init(FVector2D InRoomDimensions)
 	{
+		Empty();
 		RoomDimensions = InRoomDimensions;		
 	    GridSize.X = NumberOfRooms.X * RoomDimensions.X;
 	    GridSize.Y = NumberOfRooms.Y * RoomDimensions.Y;
@@ -65,6 +66,9 @@ public:
 	
 	bool IsValidGridCell(const FIntPoint& Location) const;
 	FVector2D GetRoomOrigin(FVector2D RoomGridCoord);
+
+	// Clears all instance data
+	virtual void Empty();
 
 	UPROPERTY(EditDefaultsOnly)
 	TArray<FIntPoint> BlockedTiles;

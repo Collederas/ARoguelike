@@ -13,7 +13,6 @@ void URoguelikePathFollowingComponent::SetMoveSegment(int32 SegmentStartIndex)
 	{
 		ARoguelikeAIController* MyController = Cast<ARoguelikeAIController>(GetOwner());
 		MyController->OnAboutToReachTarget();
-		UE_LOG(LogTemp, Warning, TEXT("Next move is GAME OVER >:)"), *CurrentDestination.Position.ToString());
 	}
 }
 

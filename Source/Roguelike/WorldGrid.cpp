@@ -118,3 +118,10 @@ FVector2D AGrid::GetRoomOrigin(FVector2D RoomGridCoord)
 {
 	return FVector2D(RoomDimensions.X * RoomGridCoord.X, RoomDimensions.Y * RoomGridCoord.Y);
 }
+
+void AGrid::Empty()
+{
+	RoomTiles.Empty();
+	RoomsCoordinates.Empty();
+	BlockedTiles.Empty();
+}

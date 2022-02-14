@@ -20,14 +20,14 @@ public:
 
 protected:
 	UFUNCTION(BlueprintCallable)
-	void MoveForward();
+	FVector MoveForward();
 
 	UFUNCTION(BlueprintCallable)
-	void MoveBackward();
+	FVector MoveBackward();
 
 	UFUNCTION(BlueprintCallable)
-	void MoveLeft();
+	FVector MoveLeft();
 
 	UFUNCTION(BlueprintCallable)
-	void MoveRight();
+	FVector MoveRight();
 };

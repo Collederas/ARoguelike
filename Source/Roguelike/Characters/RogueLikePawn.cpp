@@ -11,22 +11,22 @@ UGridMovementComponent* ARogueLikePawn::GetMovementComponent() const
 	return MovementComponent;
 }
 
-void ARogueLikePawn::MoveForward()
+FVector ARogueLikePawn::MoveForward()
 {
-	MovementComponent->RequestMove(EMoveDirection::Forward);
+	return MovementComponent->RequestMove(EMoveDirection::Forward);
 }
 
-void ARogueLikePawn::MoveBackward()
+FVector ARogueLikePawn::MoveBackward()
 {
-	MovementComponent->RequestMove(EMoveDirection::Backward);
+	return MovementComponent->RequestMove(EMoveDirection::Backward);
 }
 
-void ARogueLikePawn::MoveLeft()
+FVector ARogueLikePawn::MoveLeft()
 {
-	MovementComponent->RequestMove(EMoveDirection::Left);
+	return MovementComponent->RequestMove(EMoveDirection::Left);
 }
 
-void ARogueLikePawn::MoveRight()
+FVector ARogueLikePawn::MoveRight()
 {
-	MovementComponent->RequestMove(EMoveDirection::Right);
+	return MovementComponent->RequestMove(EMoveDirection::Right);
 }

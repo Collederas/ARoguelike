@@ -3,6 +3,7 @@
 #include "CoreMinimal.h"
 #include "WorldGrid.h"
 #include "GameFramework/Actor.h"
+#include "Navigation/GridNavigationData.h"
 #include "LevelSpawner.generated.h"
 
 UCLASS(Config=Game)
@@ -27,10 +28,16 @@ public:
 	
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<AActor> WallActor;
+
+	UFUNCTION(BlueprintCallable)
+	virtual void SpawnNewLevel();
 	
 protected:
 	UPROPERTY(Transient)
-	TObjectPtr<AGrid> Grid; 
+	TObjectPtr<AGrid> Grid;
+
+	UPROPERTY()
+	TArray<AActor*> SpawnedWalls;
 	
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -42,6 +49,8 @@ protected:
 	virtual FVector2D SelectAdjacentRoomCoord(const FVector2D RoomCoord);
 	
 	virtual FString GetRandomSourceImage();
+private:
+	TObjectPtr<AGridNavigationData> GridNavigationData;
 };
 
 
