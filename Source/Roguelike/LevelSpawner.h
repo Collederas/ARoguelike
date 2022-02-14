@@ -13,7 +13,7 @@ class ROGUELIKE_API ALevelSpawner : public AActor
 	
 public:	
 	ALevelSpawner();
-
+	
 	UPROPERTY(BlueprintReadOnly, EditAnywhere)
 	int RoomNr = 5;
 	
@@ -25,12 +25,18 @@ public:
 
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, meta = (RelativeToGameContentDir))
 	TArray<FFilePath> RoomSourceImages;
+
+	UPROPERTY(BlueprintReadOnly, EditAnywhere)
+	TMap<FColor, TSubclassOf<AActor>> ColorActorMap;
 	
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<AActor> WallActor;
 
 	UFUNCTION(BlueprintCallable)
 	virtual void SpawnNewLevel();
+
+	UFUNCTION(BlueprintCallable)
+	TArray<AActor*> GetAllEnemies();
 	
 protected:
 	UPROPERTY(Transient)
@@ -38,6 +44,9 @@ protected:
 
 	UPROPERTY()
 	TArray<AActor*> SpawnedWalls;
+	
+	UPROPERTY()
+	TArray<AActor*> SpawnedEnemies;
 	
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
