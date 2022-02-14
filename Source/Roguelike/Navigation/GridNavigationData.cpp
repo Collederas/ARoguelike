@@ -95,8 +95,8 @@ FPathFindingResult AGridNavigationData::FindPath(const FNavAgentProperties& Agen
 		}
 		else if (Query.QueryFilter.IsValid())
 		{
-			FVector2D MyGridPos, TargetGridPos = FVector2D::ZeroVector;
-			GridNavData->WorldGridActor->GetGridCellForWorldLocation(Query.StartLocation, MyGridPos);
+			FVector2D StartGridPos, TargetGridPos = FVector2D::ZeroVector;
+			GridNavData->WorldGridActor->GetGridCellForWorldLocation(Query.StartLocation, StartGridPos);
 			GridNavData->WorldGridActor->GetGridCellForWorldLocation(Query.EndLocation, TargetGridPos);
 
 			GridGraphQueryFilter QueryFilter;
@@ -107,7 +107,7 @@ FPathFindingResult AGridNavigationData::FindPath(const FNavAgentProperties& Agen
 
 			// UE_LOG(LogTemp, Warning, TEXT("Finding path from start grid: %s to end grid: %s"), *MyGridPos.IntPoint().ToString(), *TargetGridPos.IntPoint().ToString());
 
-			const EGraphAStarResult AStarResult = GridNavData->Pathfinder->FindPath(MyGridPos.IntPoint(), TargetGridPos.IntPoint(), QueryFilter, Path);
+			const EGraphAStarResult AStarResult = GridNavData->Pathfinder->FindPath(StartGridPos.IntPoint(), TargetGridPos.IntPoint(), QueryFilter, Path);
 
 			if (AStarResult == EGraphAStarResult::SearchFail || AStarResult == EGraphAStarResult::InfiniteLoop)
 			{
@@ -117,18 +117,18 @@ FPathFindingResult AGridNavigationData::FindPath(const FNavAgentProperties& Agen
 				return Result;
 			}
 
-			Path.Insert(MyGridPos.IntPoint(), 0);
+			Path.Insert(StartGridPos.IntPoint(), 0);
 
 			for (auto& Point : Path)
 			{
 				NavPath->GetPathPoints().Add(FNavPathPoint(GridNavData->WorldGridActor->GetWorldLocationForGridCellCentre(Point)));
 			}
 
-			// UE_LOG(LogTemp, Warning, TEXT("WorldGridNav path (%d points):"), Path.Num());
-			// for (int i = 0; i < Path.Num(); i++)
-			// {
-			//	   UE_LOG(LogTemp, Warning, TEXT("%s (%s)"), *Path[i].ToString(), *NavPath->GetPathPoints()[i].Location.ToString());
-			// }
+			 // UE_LOG(LogTemp, Warning, TEXT("WorldGridNav path (%d points):"), Path.Num());
+			 // for (int i = 0; i < Path.Num(); i++)
+			 // {
+				//    UE_LOG(LogTemp, Warning, TEXT("%s (%s)"), *Path[i].ToString(), *NavPath->GetPathPoints()[i].Location.ToString());
+			 // }
 			
 			NavPath->MarkReady();
 			Result.Result = ENavigationQueryResult::Success;

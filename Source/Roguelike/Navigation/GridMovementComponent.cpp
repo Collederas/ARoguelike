@@ -51,6 +51,12 @@ void UGridMovementComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 	}
 	else
 	{
+		if (RequestedMove != FVector::ZeroVector)
+		{
+			FPathFollowingResult MoveResult;
+			MoveResult.Code = EPathFollowingResult::Success;
+			OnMoveComplete.Broadcast(MoveResult);
+		}
 		RequestedMove = FVector::ZeroVector;
 	}
 }

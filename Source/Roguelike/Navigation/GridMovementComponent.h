@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Navigation/PathFollowingComponent.h"
 #include "GridMovementComponent.generated.h"
 
 UENUM(BlueprintType)
@@ -17,10 +18,13 @@ UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent), Config=Game)
 class ROGUELIKE_API UGridMovementComponent : public UPawnMovementComponent
 {
 	GENERATED_BODY()
+	DECLARE_MULTICAST_DELEGATE_OneParam(FMoveComplete, const FPathFollowingResult& /*Result*/);
 
-public:	
+public:
 	// Sets default values for this component's properties
 	UGridMovementComponent();
+
+	FMoveComplete OnMoveComplete;
 
 	virtual void AddInputVector(FVector WorldVector, bool bForce) override;
 	

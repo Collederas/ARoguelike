@@ -1,7 +1,13 @@
 #include "RoguelikeAIController.h"
 
 #include "Kismet/GameplayStatics.h"
-#include "Navigation/GridNavigationData.h"
+#include "Roguelike/Navigation/GridNavigationData.h"
+#include "Roguelike/Navigation/RoguelikePathFollowingComponent.h"
+
+ARoguelikeAIController::ARoguelikeAIController(const FObjectInitializer& Initializer) : Super(Initializer.SetDefaultSubobjectClass<URoguelikePathFollowingComponent>(TEXT("PathFollowingComponent")))
+{
+	
+}
 
 void ARoguelikeAIController::BeginPlay()
 {
@@ -11,6 +17,12 @@ void ARoguelikeAIController::BeginPlay()
 	check(WorldGridNavigationData);
 
 	GridNavigationData = WorldGridNavigationData;
+	RLPathFollowingComponent = (URoguelikePathFollowingComponent*)GetPathFollowingComponent();
+}
+
+URoguelikePathFollowingComponent* ARoguelikeAIController::GetRLPathFollowingComponent()
+{
+	return RLPathFollowingComponent;
 }
 
 void ARoguelikeAIController::RandomReachablePointInCurrentRoom(const UObject* WorldContextObject,
@@ -86,12 +98,12 @@ FPathFollowingRequestResult ARoguelikeAIController::GridMoveTo(FVector Dest, FAI
 		if (bValidQuery)
 		{
 			FNavPathSharedPtr PathResult;
-			FNavPathSharedPtr SlicedPath;
-			TArray<FNavPathPoint> PathPointsCopy;
 			FindPathForMoveRequest(MoveRequest, PFQuery, PathResult);
 
 			if (PathResult)
 			{
+				TArray<FNavPathPoint> PathPointsCopy;
+				FNavPathSharedPtr SlicedPath;
 				PathPointsCopy = PathResult->GetPathPoints();
 				SlicedPath = PathResult;
 				SlicedPath->GetPathPoints().Empty();
@@ -102,8 +114,8 @@ FPathFollowingRequestResult ARoguelikeAIController::GridMoveTo(FVector Dest, FAI
 						SlicedPath->GetPathPoints().Add(PathPointsCopy[Idx]);
 					else
 					{
-						UE_LOG(LogTemp, Warning, TEXT("Requested more moves (%d) than path points (%d)"), NumberOfMoves,
-							   PathPointsCopy.Num());
+						UE_LOG(LogTemp, Warning, TEXT("Requested more moves: (%d) than path points: (%d). Idx: %d"), NumberOfMoves,
+							   PathPointsCopy.Num(), Idx);
 						break;
 					}
 				}
@@ -125,7 +137,7 @@ FPathFollowingRequestResult ARoguelikeAIController::GridMoveTo(FVector Dest, FAI
 			}
 			else
 			{
-				UE_LOG(LogTemp, Warning, TEXT("Cant find path to %s"), *Dest.ToString());
+				UE_LOG(LogTemp, Warning, TEXT("Can't find path to: %s"), *Dest.ToString());
 			}
 		}
 	}

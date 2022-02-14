@@ -1,5 +1,5 @@
 #include "RoguelikeGameMode.h"
-#include "RoguelikeCharacter.h"
+#include "Roguelike/Characters/RoguelikeCharacter.h"
 #include "UObject/ConstructorHelpers.h"
 
 ARoguelikeGameMode::ARoguelikeGameMode()

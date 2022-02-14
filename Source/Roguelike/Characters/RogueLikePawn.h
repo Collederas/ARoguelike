@@ -1,7 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GridMovementComponent.h"
+#include "Roguelike/Navigation/GridMovementComponent.h"
 #include "GameFramework/Pawn.h"
 #include "RogueLikePawn.generated.h"
 
