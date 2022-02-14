@@ -90,35 +90,42 @@ FPathFollowingRequestResult ARoguelikeAIController::GridMoveTo(FVector Dest, FAI
 			TArray<FNavPathPoint> PathPointsCopy;
 			FindPathForMoveRequest(MoveRequest, PFQuery, PathResult);
 
-			PathPointsCopy = PathResult->GetPathPoints();
-			SlicedPath = PathResult;
-			SlicedPath->GetPathPoints().Empty();
-
-			for (int Idx = 0; Idx <= NumberOfMoves; Idx ++)
+			if (PathResult)
 			{
-				if (PathPointsCopy.IsValidIndex(Idx))
-					SlicedPath->GetPathPoints().Add(PathPointsCopy[Idx]);
-				else
+				PathPointsCopy = PathResult->GetPathPoints();
+				SlicedPath = PathResult;
+				SlicedPath->GetPathPoints().Empty();
+
+				for (int Idx = 0; Idx <= NumberOfMoves; Idx ++)
 				{
-					UE_LOG(LogTemp, Warning, TEXT("Requested more moves (%d) than path points (%d)"), NumberOfMoves,
-					       PathPointsCopy.Num());
-					break;
+					if (PathPointsCopy.IsValidIndex(Idx))
+						SlicedPath->GetPathPoints().Add(PathPointsCopy[Idx]);
+					else
+					{
+						UE_LOG(LogTemp, Warning, TEXT("Requested more moves (%d) than path points (%d)"), NumberOfMoves,
+							   PathPointsCopy.Num());
+						break;
+					}
+				}
+				const FAIRequestID RequestID = PathResult.IsValid()
+												   ? RequestMove(MoveRequest, SlicedPath)
+												   : FAIRequestID::InvalidRequest;
+
+				if (RequestID.IsValid())
+				{
+					bAllowStrafe = MoveRequest.CanStrafe();
+					ResultData.MoveId = RequestID;
+					ResultData.Code = EPathFollowingRequestResult::RequestSuccessful;
+
+					if (OutPath)
+					{
+						*OutPath = SlicedPath;
+					}
 				}
 			}
-			const FAIRequestID RequestID = PathResult.IsValid()
-				                               ? RequestMove(MoveRequest, SlicedPath)
-				                               : FAIRequestID::InvalidRequest;
-
-			if (RequestID.IsValid())
+			else
 			{
-				bAllowStrafe = MoveRequest.CanStrafe();
-				ResultData.MoveId = RequestID;
-				ResultData.Code = EPathFollowingRequestResult::RequestSuccessful;
-
-				if (OutPath)
-				{
-					*OutPath = SlicedPath;
-				}
+				UE_LOG(LogTemp, Warning, TEXT("Cant find path to %s"), *Dest.ToString());
 			}
 		}
 	}

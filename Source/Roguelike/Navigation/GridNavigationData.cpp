@@ -111,7 +111,7 @@ FPathFindingResult AGridNavigationData::FindPath(const FNavAgentProperties& Agen
 
 			if (AStarResult == EGraphAStarResult::SearchFail || AStarResult == EGraphAStarResult::InfiniteLoop)
 			{
-				UE_LOG(LogTemp, Warning, TEXT("AGridNavigationData A* fail: %d"), AStarResult);
+				UE_LOG(LogTemp, Error, TEXT("AGridNavigationData A* fail: %d"), AStarResult);
 
 				Result.Result = ENavigationQueryResult::Fail;
 				return Result;
