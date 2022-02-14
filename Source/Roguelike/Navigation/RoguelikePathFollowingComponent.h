@@ -9,8 +9,8 @@ class ROGUELIKE_API URoguelikePathFollowingComponent : public UPathFollowingComp
 {
 	GENERATED_BODY()
 
-	virtual void OnSegmentFinished() override;
-
+	virtual void SetMoveSegment(int32 SegmentStartIndex) override;
+	
 public:
 	UFUNCTION(BlueprintCallable)
 	virtual void UpdateTargetLocation(FVector2D NewTargetLocation);

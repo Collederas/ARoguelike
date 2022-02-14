@@ -27,6 +27,10 @@ public:
 	UFUNCTION(BlueprintImplementableEvent)
 	void OnMoveCompleted_Blueprint(FAIRequestID RequestID, EPathFollowingResult::Type Result);
 
+	// Gets called when Target (Player) is going to be reached in the upcoming move segment, in the current turn
+	UFUNCTION(BlueprintImplementableEvent)
+	void OnAboutToReachTarget();
+	
 	virtual void OnMoveCompleted(FAIRequestID RequestID, const FPathFollowingResult& Result) override;
 	
 protected:

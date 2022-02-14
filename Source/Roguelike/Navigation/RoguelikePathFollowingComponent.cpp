@@ -1,19 +1,21 @@
 #include "RoguelikePathFollowingComponent.h"
 
+#include "Roguelike/Characters/RoguelikeAIController.h"
 
-void URoguelikePathFollowingComponent::OnSegmentFinished()
+
+void URoguelikePathFollowingComponent::SetMoveSegment(int32 SegmentStartIndex)
 {
-	Super::OnSegmentFinished();
-	const FNavigationPath* PathInstance = Path.Get();
-	
-	UE_LOG(LogTemp, Warning, TEXT("NextPathLocation %s, TargetLocation: %s"), *PathInstance->GetPathPoints()[GetNextPathIndex() + 1].Location.ToString(), *TargetLocation.ToString());
-	FVector2D ActorLocation2D = (FVector2D)MovementComp->GetActorLocation();
-	if (ActorLocation2D.Equals(TargetLocation, 199))
+	Super::SetMoveSegment(SegmentStartIndex);
+
+	// TODO: Can improve this by using worldtogrid transformation (which should remove the need to cast)
+	const FVector2D CurrentDes2D = static_cast<FVector2D>(CurrentDestination.Position);
+	if (CurrentDes2D.Equals(TargetLocation, 50))
 	{
+		ARoguelikeAIController* MyController = Cast<ARoguelikeAIController>(GetOwner());
+		MyController->OnAboutToReachTarget();
 		UE_LOG(LogTemp, Warning, TEXT("Next move is GAME OVER >:)"), *CurrentDestination.Position.ToString());
 	}
 }
-
 
 void URoguelikePathFollowingComponent::UpdateTargetLocation(FVector2D NewTargetLocation)
 {
