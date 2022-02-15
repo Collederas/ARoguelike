@@ -4,10 +4,10 @@
 #include "WorldGrid.generated.h"
 
 /**
- * Useful for room to room spatial relation
+ * Used for room to room spatial relation
  */
 UENUM()
-enum CardinalPoint
+enum ECardinalPoint
 {
 	North,
 	South,
@@ -22,6 +22,7 @@ enum EGridActorType
 	Wall,
 	Door,
 	Chest,
+	Goal,
 	None
 };
 
@@ -29,12 +30,12 @@ USTRUCT(BlueprintType)
 struct FGridActor
 {
 	GENERATED_BODY()
-	FGridActor(){ ActorType = None; }
+	FGridActor(): Actor() { ActorType = None; }
 	FGridActor(EGridActorType InType): Actor(nullptr), ActorType(InType) {}   
 	FGridActor(AActor* InActor, EGridActorType InType): Actor(InActor), ActorType(InType) {}
 
 	UPROPERTY(BlueprintReadOnly)
-	TObjectPtr<const AActor> Actor;
+	TObjectPtr<AActor> Actor;
 
 	UPROPERTY(BlueprintReadOnly)
 	TEnumAsByte<EGridActorType> ActorType;
@@ -54,7 +55,7 @@ class AGrid: public AActor
 
 public:
 	AGrid(): RoomDimensions(16), GridSize(FIntPoint(80)) {}
-	virtual void Init(FVector2D InRoomDimensions)
+	virtual void Init(const FVector2D InRoomDimensions)
 	{
 		Empty();
 		RoomDimensions = InRoomDimensions;		
@@ -73,18 +74,16 @@ public:
 	bool GetGridCellForWorldLocation(const FVector& WorldPos, FVector2D& GridPos) const;
 	FVector GetWorldLocationForGridCellCentre(const FIntPoint& pos) const;
 	virtual FVector2D GetRoomCoord(FVector WorldCoord); 
-
 	FVector2D GetCentralRoomCoord() const;
 	virtual FVector2D GetRandomPointInRoom(FVector2D RoomCoord); 
-	
-	
+
 	bool AddRoom(FVector2D RoomCoord);
 
 	// Check value at given coord. Either a room (true) or not (false)
 	bool IsRoom(const FVector2D Coord);
 	
 	// Populate Result with cardinal locations of adjacent rooms
-	void GetAdjacentRoomCardinalPoints(TArray<CardinalPoint>& Result, const FVector2D Coord);
+	void GetAdjacentRoomCardinalPoints(TArray<ECardinalPoint>& Result, const FVector2D Coord);
 
 	void PrintRoomsLayoutDebug();
 

@@ -9,19 +9,25 @@ UGridMovementComponent::UGridMovementComponent()
 FVector UGridMovementComponent::RequestMove(EMoveDirection Direction)
 {
 	FVector DirectionVector;
+	const FRotator Rotation = PawnOwner->Controller->GetControlRotation();
+	const FRotator YawRotation(0, Rotation.Yaw, 0);
+	
+	const FVector RightVector = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
+	const FVector ForwardVector = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
+
 	switch (Direction)
 	{
 		case EMoveDirection::Forward:
-			DirectionVector = FVector::ForwardVector;
+			DirectionVector = ForwardVector;
 			break;
 		case EMoveDirection::Backward:
-			DirectionVector = -1 * FVector::ForwardVector;
+			DirectionVector = -1 * ForwardVector;
 			break;
 		case EMoveDirection::Left:
-			DirectionVector = -1 * FVector::RightVector;
+			DirectionVector = -1 * RightVector;
 			break;
 		case EMoveDirection::Right:
-			DirectionVector = FVector::RightVector;
+			DirectionVector = RightVector;
 			break;
 		default:
 			DirectionVector = FVector::ZeroVector;

@@ -6,17 +6,40 @@
 #include "Navigation/GridNavigationData.h"
 #include "LevelSpawner.generated.h"
 
+USTRUCT(BlueprintType)
+struct FSpawnActorConfig
+{
+	GENERATED_BODY()
+	FSpawnActorConfig(): ActorType(None)
+	{
+	}
+
+	FSpawnActorConfig(TSubclassOf<AActor> InActorClass,
+	                  TEnumAsByte<EGridActorType> InActorType): ActorClass(InActorClass), ActorType(InActorType)
+	{
+	}
+
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<AActor> ActorClass;
+
+	UPROPERTY(EditAnywhere)
+	TEnumAsByte<EGridActorType> ActorType;
+
+	UPROPERTY(EditAnywhere)
+	FVector SpawnOffset = FVector::ZeroVector;
+};
+
 UCLASS(Config=Game)
 class ROGUELIKE_API ALevelSpawner : public AActor
 {
 	GENERATED_BODY()
-	
-public:	
+
+public:
 	ALevelSpawner();
-	
+
 	UPROPERTY(BlueprintReadOnly, EditAnywhere)
 	int RoomNr = 5;
-	
+
 	UPROPERTY(BlueprintReadOnly, EditAnywhere)
 	int RoomHeightUnits = 16;
 
@@ -26,9 +49,10 @@ public:
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, meta = (RelativeToGameContentDir))
 	TArray<FFilePath> RoomSourceImages;
 
+	// WARNING: Color Alpha should always be 255
 	UPROPERTY(BlueprintReadOnly, EditAnywhere)
-	TMap<FColor, TSubclassOf<AActor>> ColorActorMap;
-	
+	TMap<FColor, FSpawnActorConfig> ColorActorMap;
+
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<AActor> WallActor;
 
@@ -37,17 +61,14 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	TArray<AActor*> GetAllEnemies();
-	
+
 protected:
 	UPROPERTY(Transient)
 	TObjectPtr<AGrid> Grid;
 
 	UPROPERTY()
-	TArray<AActor*> SpawnedWalls;
-	
-	UPROPERTY()
-	TArray<AActor*> SpawnedEnemies;
-	
+	TArray<FGridActor> SpawnedActors;
+
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
@@ -56,10 +77,8 @@ protected:
 
 	// Return Grid coordinate of a random adjacent room
 	virtual FVector2D SelectAdjacentRoomCoord(const FVector2D RoomCoord);
-	
+
 	virtual FString GetRandomSourceImage();
 private:
 	TObjectPtr<AGridNavigationData> GridNavigationData;
 };
-
-

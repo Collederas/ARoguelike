@@ -74,7 +74,7 @@ bool AGrid::IsRoom(const FVector2D Coord)
 	return static_cast<bool>(RoomTiles[RoomIndex]);
 }
 
-void AGrid::GetAdjacentRoomCardinalPoints(TArray<CardinalPoint>& Result, const FVector2D Coord)
+void AGrid::GetAdjacentRoomCardinalPoints(TArray<ECardinalPoint>& Result, const FVector2D Coord)
 {
 	if (!IsRoom(Coord))
 	{
@@ -82,7 +82,7 @@ void AGrid::GetAdjacentRoomCardinalPoints(TArray<CardinalPoint>& Result, const F
 		return;
 	}
 
-	TMap<CardinalPoint, FVector2D> CardinalToCoordMap = {
+	TMap<ECardinalPoint, FVector2D> CardinalToCoordMap = {
 		{North, FVector2D(Coord.X, Coord.Y + 1)},
 		{South, FVector2D(Coord.X, Coord.Y - 1)},
 		{East, FVector2D(Coord.X + 1, Coord.Y)},
@@ -121,7 +121,6 @@ bool AGrid::IsGridCellWalkable(const FIntPoint& Location) const
 void AGrid::AddBlockedTile(FIntPoint Location)
 {
 	BlockedTiles.Add(Location);
-	UpdateActorLocationMap(Location, FGridActor(Wall));
 }
 
 bool AGrid::IsValidGridCell(const FIntPoint& Location) const
