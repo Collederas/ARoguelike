@@ -93,9 +93,10 @@ void ALevelSpawner::SpawnNewLevel()
 
 			// Adding an offset of GridTileSize/2 because Actor mesh has pivot in the middle
 			FVector SpawnLocation = FVector(CurrentWorldTile, 0) * Grid->GridTileSize + FVector(
-				Grid->GridTileSize / 2, Grid->GridTileSize / 2, 0);
+				Grid->GridTileSize, Grid->GridTileSize, 0);
 			FTransform SpawnTransform(FRotator::ZeroRotator, SpawnLocation, FVector(Grid->GridTileSize / 100));
-
+			
+			// UE_LOG(LogTemp, Warning, TEXT("%s"), x, y, *Image[index].ToString());
 			bool bSpawnOuterWall = false;
 			
 			// Perimetral/Outer walls needs to be spawned independently of source image if
