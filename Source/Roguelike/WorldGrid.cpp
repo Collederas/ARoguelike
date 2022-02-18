@@ -138,6 +138,7 @@ void AGrid::Empty()
 	RoomTiles.Empty();
 	RoomsCoordinates.Empty();
 	BlockedTiles.Empty();
+	ActorLocationMap.Empty();
 }
 
 void AGrid::UpdateActorLocationMap(const FVector2D Tile, const FGridActor GridActor)

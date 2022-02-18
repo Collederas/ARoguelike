@@ -81,4 +81,5 @@ protected:
 	virtual FString GetRandomSourceImage();
 private:
 	TObjectPtr<AGridNavigationData> GridNavigationData;
+	bool bInitializedGridNav;
 };

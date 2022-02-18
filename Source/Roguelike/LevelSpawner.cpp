@@ -93,7 +93,7 @@ void ALevelSpawner::SpawnNewLevel()
 
 			// Adding an offset of GridTileSize/2 because Actor mesh has pivot in the middle
 			FVector SpawnLocation = FVector(CurrentWorldTile, 0) * Grid->GridTileSize + FVector(
-				Grid->GridTileSize, Grid->GridTileSize, 0);
+				Grid->GridTileSize/2, Grid->GridTileSize/2, 0);
 			FTransform SpawnTransform(FRotator::ZeroRotator, SpawnLocation, FVector(Grid->GridTileSize / 100));
 			
 			// UE_LOG(LogTemp, Warning, TEXT("%s"), x, y, *Image[index].ToString());
@@ -119,7 +119,7 @@ void ALevelSpawner::SpawnNewLevel()
 				
 				switch (SpawnActorConfig.ActorType)
 				{
-				case Enemy:
+					case Enemy:
 					{
 						APawn* const Enemy = (APawn*)GetWorld()->SpawnActor(SpawnActorConfig.ActorClass, &CustomSpawnLoc,
 																			NULL, FActorSpawnParameters());
@@ -129,18 +129,21 @@ void ALevelSpawner::SpawnNewLevel()
 						Enemy->SpawnDefaultController();
 						break;
 					}
-				case Wall:
-					Grid->AddBlockedTile(CurrentWorldTile.IntPoint());
-					GridActor.Actor = GetWorld()->SpawnActor(SpawnActorConfig.ActorClass, &CustomSpawnLoc, NULL,
-																	 FActorSpawnParameters());
-					Grid->UpdateActorLocationMap(CurrentWorldTile, GridActor);
-				default:
+					case Wall:
 					{
+						Grid->AddBlockedTile(CurrentWorldTile.IntPoint());
 						GridActor.Actor = GetWorld()->SpawnActor(SpawnActorConfig.ActorClass, &CustomSpawnLoc, NULL,
 																		 FActorSpawnParameters());
+						Grid->UpdateActorLocationMap(CurrentWorldTile, GridActor);
+						SpawnedActors.Add(GridActor);
+						break;
+					}
+					default:
+					{
+						GridActor.Actor = GetWorld()->SpawnActor(SpawnActorConfig.ActorClass, &CustomSpawnLoc, NULL,
+																		FActorSpawnParameters());
 						SpawnedActors.Add(GridActor);
 						Grid->UpdateActorLocationMap(CurrentWorldTile, GridActor);
-
 					}
 				}
 			}
@@ -157,21 +160,18 @@ void ALevelSpawner::SpawnNewLevel()
 						Wall.Actor = GetWorld()->SpawnActor(WallActor, &SpawnTransform, FActorSpawnParameters());
 						Grid->UpdateActorLocationMap(CurrentWorldTile.IntPoint(), Wall);
 						Grid->AddBlockedTile(CurrentWorldTile.IntPoint());
+						SpawnedActors.Add(Wall);
 					}
 				}
 			}
 		}
-		// 	// -- WIP Test Image data --
-		// 	int x = 2;
-		// 	int y = 0;
-		// 	size_t index = y * Width + x;
-		// 	// UE_LOG(LogTemp, Warning, TEXT("RGB pixel @ (x=%d, y=%d): %s"), x, y, *Image[index].ToString());
-		// 	// -------------------------
-		// }
 	}
 
-	if (GridNavigationData)
+	if (GridNavigationData && !bInitializedGridNav)
+	{
 		GridNavigationData->Init(Grid);
+		bInitializedGridNav = true;
+	}
 }
 
 TArray<AActor*> ALevelSpawner::GetAllEnemies()
