@@ -12,11 +12,10 @@ FVector UGridMovementComponent::RequestMove(EMoveDirection Direction)
 	const FRotator Rotation = PawnOwner->Controller->GetControlRotation();
 	const FRotator YawRotation(0, Rotation.Yaw, 0);
 
-	UE_LOG(LogTemp, Warning, TEXT("%s"), *YawRotation.ToString());
-	
 	const FVector RightVector = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
 	const FVector ForwardVector = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
 
+	// Constrain to closest Cardinal direction
 	float AbsRVX = FMath::Abs(RightVector.X);
 	float AbsRVY = FMath::Abs(RightVector.Y);
 	float MaxRightComponent = FMath::Max(AbsRVX, AbsRVY);
@@ -46,6 +45,7 @@ FVector UGridMovementComponent::RequestMove(EMoveDirection Direction)
 		float OriginalSign = ForwardVector.Y > 0 ? 1 : -1;
 		CardinalForward = FVector(0, 1, 0) * OriginalSign;
 	}
+	//
 	
 	switch (Direction)
 	{

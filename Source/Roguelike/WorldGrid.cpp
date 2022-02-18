@@ -21,8 +21,8 @@ FVector AGrid::GetWorldLocationForGridCell(const FVector2D& Pos) const
 
 bool AGrid::GetGridCellForWorldLocation(const FVector& WorldPos, FVector2D& GridPos) const
 {
-	GridPos.X = (WorldPos.X/ GridTileSize) - 0.5;
-	GridPos.Y = (WorldPos.Y/ GridTileSize) - 0.5;
+	GridPos.X = FMath::RoundToInt((WorldPos.X/ GridTileSize) - 0.5);
+	GridPos.Y = FMath::RoundToInt((WorldPos.Y/ GridTileSize) - 0.5);
 	return (GridPos.X >= 0 && GridPos.Y >= 0 && GridPos.X < GridSize.X && GridPos.Y < GridSize.Y);
 }
 
@@ -158,6 +158,7 @@ bool AGrid::WorldPositionCheckGridOccupied(FVector WorldPosition, FGridActor& Gr
 {
 	FVector2D TileCoord;
 	GetGridCellForWorldLocation(WorldPosition, TileCoord);
+	UE_LOG(LogTemp, Warning, TEXT("Checking grid %s for world coord %s"), *TileCoord.ToString(), *WorldPosition.ToString());
 	return CheckGridOccupied(TileCoord, GridActor);
 }
 

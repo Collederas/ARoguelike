@@ -127,6 +127,7 @@ void ALevelSpawner::SpawnNewLevel()
 						SpawnedActors.Add(GridActor);
 						Grid->UpdateActorLocationMap(CurrentWorldTile, GridActor);
 						Enemy->SpawnDefaultController();
+						UE_LOG(LogTemp, Log, TEXT("Spawned enemy at tile %s, world loc %s"), *CurrentWorldTile.ToString(), *CustomSpawnLoc.ToString());
 						break;
 					}
 					case Wall:
