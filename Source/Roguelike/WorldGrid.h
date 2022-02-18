@@ -22,6 +22,7 @@ enum EGridActorType
 	Wall,
 	Door,
 	Chest,
+	Potion,
 	Goal,
 	None
 };

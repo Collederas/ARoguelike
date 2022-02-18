@@ -7,6 +7,10 @@
 ALevelSpawner::ALevelSpawner()
 {
 	PrimaryActorTick.bCanEverTick = false;
+	RandomRotatorYawMap.Add(1, 90);
+	RandomRotatorYawMap.Add(2, 180);
+	RandomRotatorYawMap.Add(3, 270);
+	RandomRotatorYawMap.Add(4, 0);
 }
 
 void ALevelSpawner::SpawnNewLevel()
@@ -94,6 +98,7 @@ void ALevelSpawner::SpawnNewLevel()
 			// Adding an offset of GridTileSize/2 because Actor mesh has pivot in the middle
 			FVector SpawnLocation = FVector(CurrentWorldTile, 0) * Grid->GridTileSize + FVector(
 				Grid->GridTileSize/2, Grid->GridTileSize/2, 0);
+			
 			FTransform SpawnTransform(FRotator::ZeroRotator, SpawnLocation, FVector(Grid->GridTileSize / 100));
 			
 			// UE_LOG(LogTemp, Warning, TEXT("%s"), x, y, *Image[index].ToString());
@@ -121,13 +126,14 @@ void ALevelSpawner::SpawnNewLevel()
 				{
 					case Enemy:
 					{
+						int RandomInt = FMath::RandRange(1,4);
+						FRotator SpawnRotation = FRotator(0, RandomRotatorYawMap.FindRef(RandomInt),0);
 						APawn* const Enemy = (APawn*)GetWorld()->SpawnActor(SpawnActorConfig.ActorClass, &CustomSpawnLoc,
-																			NULL, FActorSpawnParameters());
+																			&SpawnRotation, FActorSpawnParameters());
 						GridActor.Actor = Enemy;
 						SpawnedActors.Add(GridActor);
 						Grid->UpdateActorLocationMap(CurrentWorldTile, GridActor);
 						Enemy->SpawnDefaultController();
-						UE_LOG(LogTemp, Log, TEXT("Spawned enemy at tile %s, world loc %s"), *CurrentWorldTile.ToString(), *CustomSpawnLoc.ToString());
 						break;
 					}
 					case Wall:

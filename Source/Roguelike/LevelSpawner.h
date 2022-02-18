@@ -82,4 +82,6 @@ protected:
 private:
 	TObjectPtr<AGridNavigationData> GridNavigationData;
 	bool bInitializedGridNav;
+
+	TMap<int, float> RandomRotatorYawMap;
 };
