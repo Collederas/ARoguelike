@@ -13,24 +13,24 @@ ALevelSpawner::ALevelSpawner()
 	RandomRotatorYawMap.Add(4, 0);
 }
 
-void ALevelSpawner::SpawnNewLevel()
+void ALevelSpawner::SpawnNewLevel(int NrOfRooms)
 {
 	constexpr int MaxRoomNr = 20;
 
-	if (RoomNr > MaxRoomNr)
+	if (NrOfRooms > MaxRoomNr)
 	{
 		// If linking room number to progression, maybe this could throw event for beating the game.
 		UE_LOG(LogTemp, Warning, TEXT("Cannot spawn more than %d rooms. Aborting"), MaxRoomNr);
 		return;
 	}
 
-	UE_LOG(LogTemp, Log, TEXT("Spawning new Level with %d rooms"), RoomNr);
+	UE_LOG(LogTemp, Log, TEXT("Spawning new Level with %d rooms"), NrOfRooms);
 
 	for (auto SpawnedActor : SpawnedActors)
 	{
 		SpawnedActor.Actor->Destroy();
 	}
-	
+
 	SpawnedActors.Empty();
 
 	if (!Grid)
@@ -45,7 +45,7 @@ void ALevelSpawner::SpawnNewLevel()
 	Grid->AddRoom(CurrentRoomCoord);
 
 	// Now add the remaining rooms
-	for (uint8 Idx = 1; Idx < RoomNr; Idx++)
+	for (uint8 Idx = 1; Idx < NrOfRooms; Idx++)
 	{
 		bool ValidRoomFound = false;
 		FVector2D ChosenRoomCoord;
@@ -58,27 +58,35 @@ void ALevelSpawner::SpawnNewLevel()
 		CurrentRoomCoord = ChosenRoomCoord;
 		Grid->AddRoom(ChosenRoomCoord);
 	}
-
+	
+	bool bChestSpawned = false; // Keep track of this because there must be only 1 per level
 
 	for (int RoomIndex = 0; RoomIndex < Grid->RoomsCoordinates.Num(); RoomIndex++)
 	{
-		if (RoomIndex == 1)
-		{
-			// First room should be empty?	
-		}
-
-		if (RoomIndex == Rooms.Num() - 1)
-		{
-			// Last room should contain the exit		
-		}
-
 		const FVector2D RoomCoord = Grid->RoomsCoordinates[RoomIndex];
 		TArray<ECardinalPoint> AdjacentRoomsCardinalPoints;
 		Grid->GetAdjacentRoomCardinalPoints(AdjacentRoomsCardinalPoints, RoomCoord);
 
-		const FString SourceImagePath = GetRandomSourceImage();
+		FString SourceImagePath;
+
+		if (RoomIndex == 0)
+		{
+			if (!StartRoomImages.IsEmpty())
+				SourceImagePath = GetRandomSourceImage(StartRoomImages);
+		}
+		else if (RoomIndex == Grid->RoomsCoordinates.Num() - 1)
+		{
+			if (!ExitRoomImages.IsEmpty())
+				SourceImagePath = GetRandomSourceImage(ExitRoomImages);
+		}
+		else
+		{
+			SourceImagePath = GetRandomSourceImage(RoomSourceImages);
+		}
+
 		TArray<FVector> Image;
 		int Width, Height;
+
 		ImageProcessor->LoadImage(Image, Width, Height, SourceImagePath);
 
 		FVector2D PixelCoord = FVector2D::ZeroVector;
@@ -100,10 +108,10 @@ void ALevelSpawner::SpawnNewLevel()
 				Grid->GridTileSize/2, Grid->GridTileSize/2, 0);
 			
 			FTransform SpawnTransform(FRotator::ZeroRotator, SpawnLocation, FVector(Grid->GridTileSize / 100));
-			
+
 			// UE_LOG(LogTemp, Warning, TEXT("%s"), x, y, *Image[index].ToString());
 			bool bSpawnOuterWall = false;
-			
+
 			// Perimetral/Outer walls needs to be spawned independently of source image if
 			// room is not bordering with anything on either side
 			if (
@@ -115,42 +123,45 @@ void ALevelSpawner::SpawnNewLevel()
 			{
 				bSpawnOuterWall = true;
 			}
-			
+
 			FSpawnActorConfig SpawnActorConfig = ColorActorMap.FindRef(CurrentColor);
 			if (!bSpawnOuterWall && SpawnActorConfig.ActorType != None)
 			{
-				FVector CustomSpawnLoc = SpawnLocation + SpawnActorConfig.SpawnOffset;
+				FVector CustomSpawnLoc = SpawnLocation + SpawnActorConfig.SpawnOffset ;
 				FGridActor GridActor = FGridActor(SpawnActorConfig.ActorType);
-				
+
 				switch (SpawnActorConfig.ActorType)
 				{
-					case Enemy:
+				case Enemy:
 					{
-						int RandomInt = FMath::RandRange(1,4);
-						FRotator SpawnRotation = FRotator(0, RandomRotatorYawMap.FindRef(RandomInt),0);
-						APawn* const Enemy = (APawn*)GetWorld()->SpawnActor(SpawnActorConfig.ActorClass, &CustomSpawnLoc,
-																			&SpawnRotation, FActorSpawnParameters());
+						int RandomInt = FMath::RandRange(1, 4);
+						FRotator SpawnRotation = FRotator(0, RandomRotatorYawMap.FindRef(RandomInt), 0);
+						APawn* const Enemy = (APawn*)GetWorld()->SpawnActor(
+							SpawnActorConfig.ActorClass, &CustomSpawnLoc,
+							&SpawnRotation, FActorSpawnParameters());
 						GridActor.Actor = Enemy;
 						SpawnedActors.Add(GridActor);
-						Grid->UpdateActorLocationMap(CurrentWorldTile, GridActor);
+						Grid->AddActorToLocationMap(CurrentWorldTile, GridActor);
 						Enemy->SpawnDefaultController();
 						break;
 					}
-					case Wall:
+				case Wall:
 					{
-						Grid->AddBlockedTile(CurrentWorldTile.IntPoint());
-						GridActor.Actor = GetWorld()->SpawnActor(SpawnActorConfig.ActorClass, &CustomSpawnLoc, NULL,
-																		 FActorSpawnParameters());
-						Grid->UpdateActorLocationMap(CurrentWorldTile, GridActor);
-						SpawnedActors.Add(GridActor);
+						SpawnActorAtLocation(CustomSpawnLoc, GridActor, SpawnActorConfig.ActorClass, true);
 						break;
 					}
-					default:
+				case Chest:
 					{
-						GridActor.Actor = GetWorld()->SpawnActor(SpawnActorConfig.ActorClass, &CustomSpawnLoc, NULL,
-																		FActorSpawnParameters());
-						SpawnedActors.Add(GridActor);
-						Grid->UpdateActorLocationMap(CurrentWorldTile, GridActor);
+						if (!bChestSpawned)
+						{
+							SpawnActorAtLocation(CustomSpawnLoc, GridActor, SpawnActorConfig.ActorClass, true);
+							bChestSpawned = true;
+						}
+						break;
+					}
+				default:
+					{
+						SpawnActorAtLocation(CustomSpawnLoc, GridActor, SpawnActorConfig.ActorClass, false);
 					}
 				}
 			}
@@ -165,7 +176,7 @@ void ALevelSpawner::SpawnNewLevel()
 					{
 						FGridActor Wall = FGridActor(EGridActorType::Wall);
 						Wall.Actor = GetWorld()->SpawnActor(WallActor, &SpawnTransform, FActorSpawnParameters());
-						Grid->UpdateActorLocationMap(CurrentWorldTile.IntPoint(), Wall);
+						Grid->AddActorToLocationMap(CurrentWorldTile.IntPoint(), Wall);
 						Grid->AddBlockedTile(CurrentWorldTile.IntPoint());
 						SpawnedActors.Add(Wall);
 					}
@@ -174,6 +185,26 @@ void ALevelSpawner::SpawnNewLevel()
 		}
 	}
 
+	if(!bChestSpawned)
+	{
+		int RandRoomIndex = FMath::RandRange(1, Grid->RoomsCoordinates.Num() - 1);
+		FVector2D RandomRoomCoord = Grid->RoomsCoordinates[RandRoomIndex];
+		FVector2D RandomTile = Grid->GetRandomFreeTileInRoom(RandomRoomCoord);
+		
+		TArray<FSpawnActorConfig> ActorConfigs;
+		ColorActorMap.GenerateValueArray(ActorConfigs);
+		for (auto ActorConfig : ActorConfigs)
+		{
+			if (ActorConfig.ActorType == Chest)
+			{
+				FVector SpawnLocation = Grid->GetWorldLocationForGridCell(RandomTile) + ActorConfig.SpawnOffset +
+					FVector(Grid->GridTileSize / 2, Grid->GridTileSize / 2, 0);
+				FGridActor ChestGridActor = FGridActor(EGridActorType::Chest); 
+				SpawnActorAtLocation(SpawnLocation, ChestGridActor, ActorConfig.ActorClass, true); 
+			}
+		}
+	}
+		
 	if (GridNavigationData && !bInitializedGridNav)
 	{
 		GridNavigationData->Init(Grid);
@@ -191,6 +222,19 @@ TArray<AActor*> ALevelSpawner::GetAllEnemies()
 	};
 	return Result;
 }
+
+void ALevelSpawner::SpawnActorAtLocation(FVector SpawnLocation, FGridActor& GridActor, TSubclassOf<AActor> ActorClass, bool SetBlockTile)
+{
+	GridActor.Actor = GetWorld()->SpawnActor(ActorClass, &SpawnLocation, NULL,
+										 FActorSpawnParameters());
+	SpawnedActors.Add(GridActor);
+	if (SetBlockTile)
+		Grid->AddBlockedTileFromWorldLocation(SpawnLocation);
+		
+	Grid->AddActorToLocationMapWorldSpace(SpawnLocation, GridActor);
+}
+
+
 
 void ALevelSpawner::BeginPlay()
 {
@@ -213,8 +257,8 @@ FVector2D ALevelSpawner::SelectAdjacentRoomCoord(const FVector2D RoomCoord)
 	return AvailableChoices[RandomIndex];
 }
 
-FString ALevelSpawner::GetRandomSourceImage()
+FString ALevelSpawner::GetRandomSourceImage(TArray<FFilePath> Sources)
 {
-	const int RandomIndex = FMath::FRandRange(0, RoomSourceImages.Num() - 1);
-	return RoomSourceImages[RandomIndex].FilePath;
+	const int RandomIndex = FMath::FRandRange(0, Sources.Num() - 1);
+	return Sources[RandomIndex].FilePath;
 }

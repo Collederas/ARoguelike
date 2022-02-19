@@ -123,6 +123,13 @@ void AGrid::AddBlockedTile(FIntPoint Location)
 	BlockedTiles.Add(Location);
 }
 
+void AGrid::AddBlockedTileFromWorldLocation(FVector WorldLocation)
+{
+	FVector2D Tile;
+	GetGridCellForWorldLocation(WorldLocation, Tile);
+	AddBlockedTile(Tile.IntPoint());
+}
+
 bool AGrid::IsValidGridCell(const FIntPoint& Location) const
 {
 	return (Location.X >= 0 && Location.Y >= 0 && Location.X < GridSize.X && Location.Y < GridSize.Y);
@@ -141,8 +148,21 @@ void AGrid::Empty()
 	ActorLocationMap.Empty();
 }
 
-void AGrid::UpdateActorLocationMap(const FVector2D Tile, const FGridActor GridActor)
+void AGrid::UpdateActorLocationMap(const FVector2D OldTile, const FVector2D NewTile, const FGridActor GridActor)
 {
+	ActorLocationMap.Remove(OldTile);
+	ActorLocationMap.Add(NewTile, GridActor);
+}
+
+void AGrid::AddActorToLocationMap(const FVector2D Tile, const FGridActor GridActor)
+{
+	ActorLocationMap.Add(Tile, GridActor);
+}
+
+void AGrid::AddActorToLocationMapWorldSpace(const FVector WorldLocation, const FGridActor GridActor)
+{
+	FVector2D Tile;
+	GetGridCellForWorldLocation(WorldLocation, Tile);
 	ActorLocationMap.Add(Tile, GridActor);
 }
 
@@ -162,4 +182,15 @@ bool AGrid::WorldPositionCheckGridOccupied(FVector WorldPosition, FGridActor& Gr
 	return CheckGridOccupied(TileCoord, GridActor);
 }
 
+FVector2D AGrid::GetRandomFreeTileInRoom(FVector2D RoomCoord)
+{
+	FVector2D Result = GetRandomPointInRoom(RoomCoord);
+
+	while (!IsGridCellWalkable(Result.IntPoint()))
+	{
+		Result = GetRandomPointInRoom(RoomCoord);
+	}
+
+	return Result;
+}
 

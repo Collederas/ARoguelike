@@ -47,7 +47,7 @@ struct FGridActor
 
 /**
  * Represents a Grid as a single dimensional array. Indices start at 0 for both
- * X and Y.
+ * X and Y. I used Tile and GridCell as synonyms :cry
  */
 UCLASS()
 class AGrid: public AActor
@@ -91,6 +91,8 @@ public:
 	bool IsGridCellWalkable(const FIntPoint& Location) const;
 
 	void AddBlockedTile(FIntPoint Location);
+
+	void AddBlockedTileFromWorldLocation(FVector WorldLocation);
 	
 	bool IsValidGridCell(const FIntPoint& Location) const;
 	FVector2D GetRoomOrigin(FVector2D RoomGridCoord);
@@ -99,13 +101,18 @@ public:
 	virtual void Empty();
 
 	UFUNCTION(BlueprintCallable)
-	void UpdateActorLocationMap(const FVector2D Tile, const FGridActor GridActor);
+	void UpdateActorLocationMap(const FVector2D OldTile, const FVector2D NewTile, const FGridActor GridActor);
+
+	UFUNCTION(BlueprintCallable)
+	void AddActorToLocationMap(const FVector2D Tile, const FGridActor GridActor);
+	void AddActorToLocationMapWorldSpace(FVector WorldLocation, FGridActor GridActor);
 
 	UFUNCTION(BlueprintCallable)
 	bool CheckGridOccupied(FVector2D Tile, FGridActor& GridActor);
 
 	UFUNCTION(BlueprintCallable)
 	bool WorldPositionCheckGridOccupied(FVector WorldPosition, FGridActor& GridActor);
+	FVector2D GetRandomFreeTileInRoom(FVector2D RoomCoord);
 
 	UPROPERTY(EditDefaultsOnly)
 	TArray<FIntPoint> BlockedTiles;

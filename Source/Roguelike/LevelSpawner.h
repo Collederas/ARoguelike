@@ -38,7 +38,7 @@ public:
 	ALevelSpawner();
 
 	UPROPERTY(BlueprintReadOnly, EditAnywhere)
-	int RoomNr = 5;
+	int BaseRoomNr = 5;
 
 	UPROPERTY(BlueprintReadOnly, EditAnywhere)
 	int RoomHeightUnits = 16;
@@ -49,6 +49,12 @@ public:
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, meta = (RelativeToGameContentDir))
 	TArray<FFilePath> RoomSourceImages;
 
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, meta = (RelativeToGameContentDir))
+	TArray<FFilePath> StartRoomImages;
+
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, meta = (RelativeToGameContentDir))
+	TArray<FFilePath> ExitRoomImages;
+	
 	// WARNING: Color Alpha should always be 255
 	UPROPERTY(BlueprintReadOnly, EditAnywhere)
 	TMap<FColor, FSpawnActorConfig> ColorActorMap;
@@ -57,7 +63,7 @@ public:
 	TSubclassOf<AActor> WallActor;
 
 	UFUNCTION(BlueprintCallable)
-	virtual void SpawnNewLevel();
+	virtual void SpawnNewLevel(int NrOfRooms);
 
 	UFUNCTION(BlueprintCallable)
 	TArray<AActor*> GetAllEnemies();
@@ -78,7 +84,9 @@ protected:
 	// Return Grid coordinate of a random adjacent room
 	virtual FVector2D SelectAdjacentRoomCoord(const FVector2D RoomCoord);
 
-	virtual FString GetRandomSourceImage();
+	virtual FString GetRandomSourceImage(TArray<FFilePath> Sources);
+
+	virtual void SpawnActorAtLocation(FVector SpawnLocation, FGridActor& GridActor, TSubclassOf<AActor> ActorClass, bool SetBlockTile = false);
 private:
 	TObjectPtr<AGridNavigationData> GridNavigationData;
 	bool bInitializedGridNav;

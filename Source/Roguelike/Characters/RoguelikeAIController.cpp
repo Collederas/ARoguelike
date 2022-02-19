@@ -131,7 +131,10 @@ FPathFollowingRequestResult ARoguelikeAIController::GridMoveTo(FVector Dest, FAI
 					ResultData.MoveId = RequestID;
 					FVector2D DestinationTile;
 					GridNavigationData->WorldGridActor->GetGridCellForWorldLocation(SlicedPath->GetPathPoints().Last().Location, DestinationTile);
+					FVector2D OriginTile;
+					GridNavigationData->WorldGridActor->GetGridCellForWorldLocation(SlicedPath->GetPathPoints()[0].Location, OriginTile);
 					GridNavigationData->WorldGridActor->UpdateActorLocationMap(
+						OriginTile,
 						DestinationTile, GridActorOwner);
 					ResultData.Code = EPathFollowingRequestResult::RequestSuccessful;
 
