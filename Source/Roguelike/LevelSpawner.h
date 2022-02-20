@@ -63,10 +63,16 @@ public:
 	TSubclassOf<AActor> WallActor;
 
 	UFUNCTION(BlueprintCallable)
-	virtual void SpawnNewLevel(int NrOfRooms);
+	virtual void SpawnNewLevel(int NrOfRooms, bool SpawnChest);
 
 	UFUNCTION(BlueprintCallable)
 	TArray<AActor*> GetAllEnemies();
+
+	UFUNCTION()
+	FVector2D GetTileCoordFromRoom(FVector2D RoomCoord) const;
+
+	UFUNCTION(BlueprintCallable)
+	void GetStartingPointTransform(FTransform& Transform) const;
 
 protected:
 	UPROPERTY(Transient)
@@ -86,7 +92,7 @@ protected:
 
 	virtual FString GetRandomSourceImage(TArray<FFilePath> Sources);
 
-	virtual void SpawnActorAtLocation(FVector SpawnLocation, FGridActor& GridActor, TSubclassOf<AActor> ActorClass, bool SetBlockTile = false);
+	virtual void SpawnActorAtLocation(FVector SpawnLocation, TSubclassOf<AActor> ActorClass, FGridActor& GridActor, bool SetBlockTile = false);
 private:
 	TObjectPtr<AGridNavigationData> GridNavigationData;
 	bool bInitializedGridNav;

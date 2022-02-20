@@ -13,7 +13,7 @@ ALevelSpawner::ALevelSpawner()
 	RandomRotatorYawMap.Add(4, 0);
 }
 
-void ALevelSpawner::SpawnNewLevel(int NrOfRooms)
+void ALevelSpawner::SpawnNewLevel(int NrOfRooms, bool SpawnChest)
 {
 	constexpr int MaxRoomNr = 20;
 
@@ -28,7 +28,8 @@ void ALevelSpawner::SpawnNewLevel(int NrOfRooms)
 
 	for (auto SpawnedActor : SpawnedActors)
 	{
-		SpawnedActor.Actor->Destroy();
+		if (IsValid(SpawnedActor.Actor))
+			SpawnedActor.Actor->Destroy();
 	}
 
 	SpawnedActors.Empty();
@@ -42,6 +43,7 @@ void ALevelSpawner::SpawnNewLevel(int NrOfRooms)
 
 	// First room is always going to be in the center of the grid
 	FVector2D CurrentRoomCoord = Grid->GetCentralRoomCoord();
+	UE_LOG(LogTemp, Warning, TEXT("StrtingRoomCoord: %s"), *CurrentRoomCoord.ToString());
 	Grid->AddRoom(CurrentRoomCoord);
 
 	// Now add the remaining rooms
@@ -58,7 +60,7 @@ void ALevelSpawner::SpawnNewLevel(int NrOfRooms)
 		CurrentRoomCoord = ChosenRoomCoord;
 		Grid->AddRoom(ChosenRoomCoord);
 	}
-	
+
 	bool bChestSpawned = false; // Keep track of this because there must be only 1 per level
 
 	for (int RoomIndex = 0; RoomIndex < Grid->RoomsCoordinates.Num(); RoomIndex++)
@@ -105,8 +107,8 @@ void ALevelSpawner::SpawnNewLevel(int NrOfRooms)
 
 			// Adding an offset of GridTileSize/2 because Actor mesh has pivot in the middle
 			FVector SpawnLocation = FVector(CurrentWorldTile, 0) * Grid->GridTileSize + FVector(
-				Grid->GridTileSize/2, Grid->GridTileSize/2, 0);
-			
+				Grid->GridTileSize / 2, Grid->GridTileSize / 2, 0);
+
 			FTransform SpawnTransform(FRotator::ZeroRotator, SpawnLocation, FVector(Grid->GridTileSize / 100));
 
 			// UE_LOG(LogTemp, Warning, TEXT("%s"), x, y, *Image[index].ToString());
@@ -127,7 +129,7 @@ void ALevelSpawner::SpawnNewLevel(int NrOfRooms)
 			FSpawnActorConfig SpawnActorConfig = ColorActorMap.FindRef(CurrentColor);
 			if (!bSpawnOuterWall && SpawnActorConfig.ActorType != None)
 			{
-				FVector CustomSpawnLoc = SpawnLocation + SpawnActorConfig.SpawnOffset ;
+				FVector CustomSpawnLoc = SpawnLocation + SpawnActorConfig.SpawnOffset;
 				FGridActor GridActor = FGridActor(SpawnActorConfig.ActorType);
 
 				switch (SpawnActorConfig.ActorType)
@@ -147,21 +149,21 @@ void ALevelSpawner::SpawnNewLevel(int NrOfRooms)
 					}
 				case Wall:
 					{
-						SpawnActorAtLocation(CustomSpawnLoc, GridActor, SpawnActorConfig.ActorClass, true);
+						SpawnActorAtLocation(CustomSpawnLoc, SpawnActorConfig.ActorClass, GridActor, true);
 						break;
 					}
 				case Chest:
 					{
-						if (!bChestSpawned)
+						if (!bChestSpawned && SpawnChest)
 						{
-							SpawnActorAtLocation(CustomSpawnLoc, GridActor, SpawnActorConfig.ActorClass, true);
+							SpawnActorAtLocation(CustomSpawnLoc, SpawnActorConfig.ActorClass, GridActor, true);
 							bChestSpawned = true;
 						}
 						break;
 					}
 				default:
 					{
-						SpawnActorAtLocation(CustomSpawnLoc, GridActor, SpawnActorConfig.ActorClass, false);
+						SpawnActorAtLocation(CustomSpawnLoc, SpawnActorConfig.ActorClass, GridActor, false);
 					}
 				}
 			}
@@ -185,12 +187,12 @@ void ALevelSpawner::SpawnNewLevel(int NrOfRooms)
 		}
 	}
 
-	if(!bChestSpawned)
+	if (!bChestSpawned && SpawnChest)
 	{
 		int RandRoomIndex = FMath::RandRange(1, Grid->RoomsCoordinates.Num() - 1);
 		FVector2D RandomRoomCoord = Grid->RoomsCoordinates[RandRoomIndex];
 		FVector2D RandomTile = Grid->GetRandomFreeTileInRoom(RandomRoomCoord);
-		
+
 		TArray<FSpawnActorConfig> ActorConfigs;
 		ColorActorMap.GenerateValueArray(ActorConfigs);
 		for (auto ActorConfig : ActorConfigs)
@@ -199,12 +201,12 @@ void ALevelSpawner::SpawnNewLevel(int NrOfRooms)
 			{
 				FVector SpawnLocation = Grid->GetWorldLocationForGridCell(RandomTile) + ActorConfig.SpawnOffset +
 					FVector(Grid->GridTileSize / 2, Grid->GridTileSize / 2, 0);
-				FGridActor ChestGridActor = FGridActor(EGridActorType::Chest); 
-				SpawnActorAtLocation(SpawnLocation, ChestGridActor, ActorConfig.ActorClass, true); 
+				FGridActor ChestGridActor = FGridActor(EGridActorType::Chest);
+				SpawnActorAtLocation(SpawnLocation, ActorConfig.ActorClass, ChestGridActor, true);
 			}
 		}
 	}
-		
+
 	if (GridNavigationData && !bInitializedGridNav)
 	{
 		GridNavigationData->Init(Grid);
@@ -223,17 +225,58 @@ TArray<AActor*> ALevelSpawner::GetAllEnemies()
 	return Result;
 }
 
-void ALevelSpawner::SpawnActorAtLocation(FVector SpawnLocation, FGridActor& GridActor, TSubclassOf<AActor> ActorClass, bool SetBlockTile)
+FVector2D ALevelSpawner::GetTileCoordFromRoom(FVector2D RoomCoord) const
+{
+	return FVector2D(RoomCoord.X * RoomWidthUnits, RoomCoord.Y * RoomWidthUnits);
+}
+
+void ALevelSpawner::GetStartingPointTransform(FTransform& Transform) const
+{
+	if (!Grid)
+		return;
+	
+	FVector2D StartingRoomOrigin;
+	if (Grid->RoomsCoordinates.Num() > 0)
+	{
+		StartingRoomOrigin = Grid->GetCentralRoomCoord();
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error,
+		       TEXT(
+			       "GetStartingPointTransform - Attempt to access starting room when it was not yet created."
+		       ));
+		return;
+	}
+	if (Grid->IsRoom(StartingRoomOrigin))
+	{
+		FVector2D StartingTile = GetTileCoordFromRoom(StartingRoomOrigin) + FVector2D(
+				FMath::RoundToInt(RoomWidthUnits / 2), FMath::RoundToInt(RoomHeightUnits / 2));
+		
+		UE_LOG(LogTemp, Warning, TEXT("StartingTile Found at: %s"), *StartingTile.ToString());
+		
+		const FVector StartingLocation = Grid->GetWorldLocationForGridCell(
+			FVector2D(GetTileCoordFromRoom(StartingRoomOrigin) + FVector2D(
+				FMath::RoundToInt(RoomWidthUnits / 2), FMath::RoundToInt(RoomHeightUnits / 2))));
+		Transform = FTransform(FRotator::ZeroRotator, StartingLocation, FVector::OneVector);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("GetStartingPointTransform - No room at central coords"));
+	}
+}
+
+void ALevelSpawner::SpawnActorAtLocation(FVector SpawnLocation, TSubclassOf<AActor> ActorClass, FGridActor& GridActor,
+                                         bool SetBlockTile)
 {
 	GridActor.Actor = GetWorld()->SpawnActor(ActorClass, &SpawnLocation, NULL,
-										 FActorSpawnParameters());
+	                                         FActorSpawnParameters());
 	SpawnedActors.Add(GridActor);
 	if (SetBlockTile)
 		Grid->AddBlockedTileFromWorldLocation(SpawnLocation);
-		
+
 	Grid->AddActorToLocationMapWorldSpace(SpawnLocation, GridActor);
 }
-
 
 
 void ALevelSpawner::BeginPlay()

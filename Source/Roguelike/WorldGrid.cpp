@@ -178,7 +178,6 @@ bool AGrid::WorldPositionCheckGridOccupied(FVector WorldPosition, FGridActor& Gr
 {
 	FVector2D TileCoord;
 	GetGridCellForWorldLocation(WorldPosition, TileCoord);
-	UE_LOG(LogTemp, Warning, TEXT("Checking grid %s for world coord %s"), *TileCoord.ToString(), *WorldPosition.ToString());
 	return CheckGridOccupied(TileCoord, GridActor);
 }
 

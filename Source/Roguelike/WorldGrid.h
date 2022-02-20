@@ -117,13 +117,13 @@ public:
 	UPROPERTY(EditDefaultsOnly)
 	TArray<FIntPoint> BlockedTiles;
 
-protected:
 	UPROPERTY(BlueprintReadOnly)
 	FVector2D NumberOfRooms = FVector2D(10);
 	
 	UPROPERTY(BlueprintReadOnly)
 	FVector2D RoomDimensions;
 
+protected:
 	UPROPERTY()
 	TMap<FVector2D, FGridActor> ActorLocationMap;
 	
