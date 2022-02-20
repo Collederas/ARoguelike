@@ -26,4 +26,17 @@ public:
 	
 	UFUNCTION(BlueprintCallable)
 	void SetLevel(uint8 InLevel);
+	
+	UFUNCTION(BlueprintCallable)
+	void AddKeyForCurrentLevel();
+	
+	UFUNCTION(BlueprintCallable)
+	bool DidFindKeyInCurrentLevel();
+	
+	UFUNCTION(BlueprintCallable)
+	void ResetKeysFound();
+	
+private:
+	UPROPERTY()
+	TMap<int, bool> KeysFoundPerLevel;
 };

@@ -43,7 +43,6 @@ void ALevelSpawner::SpawnNewLevel(int NrOfRooms, bool SpawnChest)
 
 	// First room is always going to be in the center of the grid
 	FVector2D CurrentRoomCoord = Grid->GetCentralRoomCoord();
-	UE_LOG(LogTemp, Warning, TEXT("StrtingRoomCoord: %s"), *CurrentRoomCoord.ToString());
 	Grid->AddRoom(CurrentRoomCoord);
 
 	// Now add the remaining rooms
