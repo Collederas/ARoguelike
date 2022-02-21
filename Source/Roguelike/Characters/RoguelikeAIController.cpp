@@ -55,7 +55,7 @@ EPathFollowingRequestResult::Type ARoguelikeAIController::GridMoveTo(FVector Des
 	MoveReq.SetAllowPartialPath(false);
 	MoveReq.SetProjectGoalLocation(false);
 	MoveReq.SetNavigationFilter(*FilterClass ? FilterClass : DefaultNavigationFilterClass);
-	MoveReq.SetAcceptanceRadius(-1.f);
+	MoveReq.SetAcceptanceRadius(60);
 	MoveReq.SetReachTestIncludesAgentRadius(false);
 	MoveReq.SetCanStrafe(true);
 

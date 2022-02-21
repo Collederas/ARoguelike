@@ -233,7 +233,7 @@ void ALevelSpawner::GetStartingPointTransform(FTransform& Transform) const
 {
 	if (!Grid)
 		return;
-	
+
 	FVector2D StartingRoomOrigin;
 	if (Grid->RoomsCoordinates.Num() > 0)
 	{
@@ -250,10 +250,10 @@ void ALevelSpawner::GetStartingPointTransform(FTransform& Transform) const
 	if (Grid->IsRoom(StartingRoomOrigin))
 	{
 		FVector2D StartingTile = GetTileCoordFromRoom(StartingRoomOrigin) + FVector2D(
-				FMath::RoundToInt(RoomWidthUnits / 2), FMath::RoundToInt(RoomHeightUnits / 2));
-		
+			FMath::RoundToInt(RoomWidthUnits / 2), FMath::RoundToInt(RoomHeightUnits / 2));
+
 		UE_LOG(LogTemp, Warning, TEXT("StartingTile Found at: %s"), *StartingTile.ToString());
-		
+
 		const FVector StartingLocation = Grid->GetWorldLocationForGridCell(
 			FVector2D(GetTileCoordFromRoom(StartingRoomOrigin) + FVector2D(
 				FMath::RoundToInt(RoomWidthUnits / 2), FMath::RoundToInt(RoomHeightUnits / 2))));
@@ -263,6 +263,18 @@ void ALevelSpawner::GetStartingPointTransform(FTransform& Transform) const
 	{
 		UE_LOG(LogTemp, Warning, TEXT("GetStartingPointTransform - No room at central coords"));
 	}
+}
+
+FVector ALevelSpawner::GetDungeonCentralLocation()
+{
+	if (Grid->RoomsCoordinates.Num() == 0)
+		return FVector::ZeroVector;
+	
+	const int MiddleIndex = FMath::RoundToInt((Grid->RoomsCoordinates.Num() - 1) / 2);
+	const FVector2D CentralRoom = Grid->RoomsCoordinates[MiddleIndex];
+	return Grid->GetWorldLocationForGridCell(
+		GetTileCoordFromRoom(CentralRoom) + FVector2D(FMath::RoundToInt(RoomWidthUnits / 2),
+		                                              FMath::RoundToInt(RoomHeightUnits / 2)));
 }
 
 void ALevelSpawner::SpawnActorAtLocation(FVector SpawnLocation, TSubclassOf<AActor> ActorClass, FGridActor& GridActor,
@@ -283,7 +295,6 @@ void ALevelSpawner::BeginPlay()
 	Super::BeginPlay();
 	const AActor* NavData = UGameplayStatics::GetActorOfClass(GetWorld(), AGridNavigationData::StaticClass());
 	AGridNavigationData* GridNavData = (AGridNavigationData*)NavData;
-	UE_LOG(LogTemp, Warning, TEXT("Grid: %s"), *GridNavData->GetName());
 	GridNavigationData = GridNavData;
 }
 
@@ -303,5 +314,7 @@ FVector2D ALevelSpawner::SelectAdjacentRoomCoord(const FVector2D RoomCoord)
 FString ALevelSpawner::GetRandomSourceImage(TArray<FFilePath> Sources)
 {
 	const int RandomIndex = FMath::FRandRange(0, Sources.Num() - 1);
-	return Sources[RandomIndex].FilePath;
+	FString ThePath = FPaths::ConvertRelativePathToFull(FPaths::ProjectContentDir());
+	// UE_LOG(LogTemp, Log, TEXT("Loading room source image from: %s"), *ThePath.Append(Sources[RandomIndex].FilePath));
+	return ThePath.Append(Sources[RandomIndex].FilePath);
 }

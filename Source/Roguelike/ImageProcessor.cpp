@@ -10,11 +10,15 @@ FVector UImageProcessor::GetPixelColor(FVector2D PixelCoord)
 
 void UImageProcessor::LoadImage(TArray<FVector>& OutImage, int&Width, int& Height, FString ImagePath)
 {
-	if (!FPaths::FileExists(ImagePath))
+	IPlatformFile& FileManager = FPlatformFileManager::Get().GetPlatformFile();
+
+	if (!FileManager.FileExists(*ImagePath))
 	{
 		UE_LOG(LogTemp, Warning, TEXT("File not found!"));
 		return;
 	}
+	const FString FileNameOnDisk = FileManager.GetFilenameOnDisk(*ImagePath);
+	UE_LOG(LogTemp, Log, TEXT("Loading: %s"), *FileNameOnDisk);
 
 	int n;
 	

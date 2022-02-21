@@ -74,6 +74,9 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void GetStartingPointTransform(FTransform& Transform) const;
 
+	UFUNCTION(BlueprintCallable)
+	FVector GetDungeonCentralLocation();
+
 protected:
 	UPROPERTY(Transient)
 	TObjectPtr<AGrid> Grid;
