@@ -283,6 +283,7 @@ void ALevelSpawner::BeginPlay()
 	Super::BeginPlay();
 	const AActor* NavData = UGameplayStatics::GetActorOfClass(GetWorld(), AGridNavigationData::StaticClass());
 	AGridNavigationData* GridNavData = (AGridNavigationData*)NavData;
+	UE_LOG(LogTemp, Warning, TEXT("Grid: %s"), *GridNavData->GetName());
 	GridNavigationData = GridNavData;
 }
 

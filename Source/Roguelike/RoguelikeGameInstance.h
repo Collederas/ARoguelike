@@ -2,11 +2,11 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerState.h"
-#include "RoguelikePlayerState.generated.h"
+#include "RoguelikeGameInstance.generated.h"
 
 
 UCLASS()
-class ROGUELIKE_API ARoguelikePlayerState : public APlayerState
+class ROGUELIKE_API URoguelikeGameInstance : public UGameInstance
 {
 	GENERATED_BODY()
 
@@ -25,7 +25,7 @@ public:
 	void IncrementLevel();
 	
 	UFUNCTION(BlueprintCallable)
-	void SetLevel(uint8 InLevel);
+	void SetLevel(int InLevel);
 	
 	UFUNCTION(BlueprintCallable)
 	void AddKeyForCurrentLevel();
