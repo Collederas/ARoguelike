@@ -1,3 +1,3 @@
 # Roguelike
 
-Making a 3D Roguelike in 15 days
+A 3D Roguelike made in 15 days
